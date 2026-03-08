@@ -699,7 +699,7 @@ body {
     <div class="tools-row">
 
       <!-- Seamless Texture -->
-      <div class="tool-card t1" onclick="window.location.href='seamless-demo.html'" style="cursor:pointer">
+      <div class="tool-card t1" onclick="showPage('seamless')" style="cursor:pointer">
         <div class="tool-thumb">
           <video class="tool-video" src="" muted loop playsinline data-src="seamless_preview.mp4"></video>
           <div class="tool-thumb-inner tool-fallback">
@@ -1078,9 +1078,7 @@ document.querySelectorAll('.nav-item').forEach(el => {
   else if (oc.includes('seamless') || el.textContent.includes('Seamless')) el.dataset.page = 'seamless';
 });
 
-// Seamless 카드 클릭 → 페이지 전환
-document.querySelector('.tool-card.t1').style.cursor = 'pointer';
-document.querySelector('.tool-card.t1').addEventListener('click', () => showPage('seamless'));
+// Seamless 카드 클릭 → showPage는 onclick에 직접 설정됨
 
 // 사이드바 Seamless 메뉴
 document.querySelectorAll('.nav-item').forEach(el => {
