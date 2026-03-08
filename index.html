@@ -2122,21 +2122,22 @@ function upLoadFile(input) {
 
   const reader = new FileReader();
   reader.onload = e => {
-    // before 이미지 세팅
-    const beforeImg = document.getElementById('up-before-img');
-    beforeImg.src = e.target.result;
+    // before/after 모두 원본으로 세팅 (슬라이더는 숨김)
+    document.getElementById('up-before-img').src = e.target.result;
+    document.getElementById('up-after-img').src = e.target.result;
 
-    // after는 일단 같은 이미지로 (업스케일 전)
-    const afterImg = document.getElementById('up-after-img');
-    afterImg.src = e.target.result;
-    afterImg.style.display = 'block';
-
-    // 플레이스홀더 숨기고 비교 wrap 표시
+    // 업로드 플레이스홀더 숨기고 비교 wrap 표시 (슬라이더 숨김 상태)
     document.getElementById('up-upload-placeholder').style.display = 'none';
     document.getElementById('up-compare-wrap').style.display = 'block';
-    upSetSlider(50);
 
-    // 원본 크기 표시
+    // 슬라이더 핸들/라인 숨기기 (업스케일 전)
+    document.getElementById('up-slider-line').style.display = 'none';
+    document.getElementById('up-slider-handle').style.display = 'none';
+    // before-clip 전체 너비로 (이미지만 보임)
+    document.getElementById('up-before-clip').style.width = '100%';
+    document.getElementById('up-before-label').style.display = 'none';
+    document.querySelector('#up-compare-wrap [style*="AFTER"]') && (document.querySelector('#up-compare-wrap [style*="AFTER"]').style.display = 'none');
+
     const tmp = new Image();
     tmp.onload = () => {
       document.getElementById('up-before-info').textContent = `원본: ${tmp.width} × ${tmp.height}px`;
@@ -2198,6 +2199,14 @@ async function upProcess() {
     const afterImg = document.getElementById('up-after-img');
     afterImg.src = outputUrl;
     document.getElementById('up-download-btn').style.display = 'block';
+
+    // 슬라이더 활성화 (업스케일 완료 후)
+    document.getElementById('up-slider-line').style.display = 'block';
+    document.getElementById('up-slider-handle').style.display = 'flex';
+    document.getElementById('up-before-label').style.display = 'block';
+    const afterLabel = document.querySelector('#up-compare-wrap div[style*="AFTER"]');
+    if (afterLabel) afterLabel.style.display = 'block';
+    upSetSlider(50);
 
     const tmp = new Image();
     tmp.onload = () => {
