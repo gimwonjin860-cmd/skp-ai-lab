@@ -1302,29 +1302,19 @@ function smFinalize(canvas,btn){
 async function smRunUpscale(dataURL,key){
   smSetStatus('Real-ESRGAN 4× 업스케일 중...',true);
   try{
-    const PROXY = 'https://corsproxy.io/?';
-    const cr=await fetch(PROXY+'https://api.replicate.com/v1/predictions',{
+    const cr=await fetch('/api/upscale',{
       method:'POST',
-      headers:{'Authorization':`Bearer ${key}`,'Content-Type':'application/json','x-requested-with':'XMLHttpRequest'},
-      body:JSON.stringify({version:'42fed1c4974146d4d2414e2be2c5277c7fcf05fcc3a73abf41610695738c1d7b',input:{image:dataURL,scale:4,face_enhance:false}})
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({image:dataURL,apiKey:key})
     });
     if(!cr.ok)throw new Error(`API ${cr.status}`);
-    const pred=await cr.json();
-    for(let i=0;i<60;i++){
-      await new Promise(r=>setTimeout(r,2000));
-      const pr=await fetch(PROXY+`https://api.replicate.com/v1/predictions/${pred.id}`,{headers:{'Authorization':`Bearer ${key}`,'x-requested-with':'XMLHttpRequest'}});
-      const pd=await pr.json();
-      if(pd.status==='succeeded'){
-        smUpscaleURL=pd.output;
-        document.getElementById('sm-upscale-img').src=pd.output;
-        document.getElementById('sm-upscale-section').style.display='block';
-        document.getElementById('sm-dl-upscale-btn').style.display='flex';
-        smSetStatus('업스케일 완료!',false);
-        return;
-      }
-      if(pd.status==='failed')throw new Error(pd.error);
-    }
-    throw new Error('타임아웃');
+    const result=await cr.json();
+    if(result.error)throw new Error(result.error);
+    smUpscaleURL=result.url;
+    document.getElementById('sm-upscale-img').src=result.url;
+    document.getElementById('sm-upscale-section').style.display='block';
+    document.getElementById('sm-dl-upscale-btn').style.display='flex';
+    smSetStatus('업스케일 완료!',false);
   }catch(e){smSetStatus('업스케일 오류: '+e.message,true);}
 }
 
