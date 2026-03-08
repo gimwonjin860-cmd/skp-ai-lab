@@ -1360,6 +1360,43 @@ function smProcess(){
   img.src=smPreviewURL;
 }
 
+function smFinalize(canvas, btn) {
+  const w = canvas.width, h = canvas.height;
+
+  // result canvas 업데이트
+  const resultCanvas = document.getElementById('sm-result-canvas');
+  resultCanvas.width = w; resultCanvas.height = h;
+  resultCanvas.getContext('2d').drawImage(canvas, 0, 0);
+
+  // 결과 저장
+  smResultDataURL = canvas.toDataURL('image/png');
+
+  // before/after 슬라이더 이미지
+  const origImg = document.getElementById('sm-orig-img');
+  const resultImg2 = document.getElementById('sm-result-img');
+  resultImg2.src = smResultDataURL;
+
+  // 타일 캔버스
+  const tileCanvas = document.getElementById('sm-tiled-canvas');
+  if (tileCanvas) {
+    const tileSize = 4;
+    tileCanvas.width = w * tileSize; tileCanvas.height = h * tileSize;
+    const tctx = tileCanvas.getContext('2d');
+    for (let ty = 0; ty < tileSize; ty++)
+      for (let tx = 0; tx < tileSize; tx++)
+        tctx.drawImage(canvas, tx * w, ty * h);
+  }
+
+  // UI 업데이트
+  smSetStatus('변환 완료!', false);
+  if (btn) { btn.textContent = 'SEAMLESS 변환'; btn.disabled = false; }
+  document.getElementById('sm-tab-bar').style.display = 'flex';
+  document.getElementById('sm-dl-wrap').style.display = 'grid';
+  document.getElementById('sm-compare-wrap').style.display = 'flex';
+  document.getElementById('sm-tiled-wrap').style.display = 'none';
+  smInitSlider();
+}
+
 async function smRunFFT(img, btn) {
   const key = document.getElementById('sm-api-key').value.trim();
 
