@@ -2173,40 +2173,21 @@ async function upProcess() {
     const creativity = parseFloat(document.getElementById('up-creativity').value);
     const resemblance = parseFloat(document.getElementById('up-resemblance').value);
 
-    // Replicate 직접 호출
-    const createResp = await fetch('https://api.replicate.com/v1/models/philz1337x/clarity-upscaler/predictions', {
+    const resp = await fetch('/api/upscaler', {
       method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + apiKey,
-        'Content-Type': 'application/json',
-        'Prefer': 'wait'
-      },
-      body: JSON.stringify({ input: {
-        image: 'data:image/png;base64,' + base64,
-        scale_factor: upScale,
-        creativity,
-        resemblance,
-        output_format: 'png'
-      }})
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        apiKey,
+        input: {
+          image: 'data:image/png;base64,' + base64,
+          scale_factor: upScale
+        }
+      })
     });
 
-    if (!createResp.ok) {
-      const err = await createResp.json();
-      throw new Error(err.detail || 'Replicate 오류: ' + createResp.status);
-    }
-
-    let prediction = await createResp.json();
-    let attempts = 0;
-    while (prediction.status !== 'succeeded' && prediction.status !== 'failed' && attempts < 60) {
-      await new Promise(r => setTimeout(r, 2000));
-      const pollResp = await fetch('https://api.replicate.com/v1/predictions/' + prediction.id, {
-        headers: { 'Authorization': 'Bearer ' + apiKey }
-      });
-      prediction = await pollResp.json();
-      attempts++;
-    }
-    if (prediction.status === 'failed') throw new Error(prediction.error || 'Prediction failed');
-    const outputUrl = Array.isArray(prediction.output) ? prediction.output[0] : prediction.output;
+    if (!resp.ok) throw new Error('API 오류: ' + resp.status);
+    const data = await resp.json();
+    const outputUrl = data.output;
     if (!outputUrl) throw new Error('결과 없음');
 
     upResultURL = outputUrl;

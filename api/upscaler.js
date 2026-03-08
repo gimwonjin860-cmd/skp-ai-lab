@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   if (!apiKey) return res.status(400).json({ error: 'API key required' });
 
   try {
-    const createResp = await fetch('https://api.replicate.com/v1/models/philz1337x/clarity-upscaler/predictions', {
+    const createResp = await fetch('https://api.replicate.com/v1/models/philz1337x/crystal-upscaler/predictions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -27,7 +27,6 @@ export default async function handler(req, res) {
     }
 
     let prediction = await createResp.json();
-
     let attempts = 0;
     while (prediction.status !== 'succeeded' && prediction.status !== 'failed' && attempts < 60) {
       await new Promise(r => setTimeout(r, 2000));
@@ -38,10 +37,7 @@ export default async function handler(req, res) {
       attempts++;
     }
 
-    if (prediction.status === 'failed') {
-      return res.status(500).json({ error: prediction.error || 'Prediction failed' });
-    }
-
+    if (prediction.status === 'failed') return res.status(500).json({ error: prediction.error || 'Prediction failed' });
     const output = Array.isArray(prediction.output) ? prediction.output[0] : prediction.output;
     return res.status(200).json({ output });
 
