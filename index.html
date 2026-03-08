@@ -1726,8 +1726,8 @@ async function txGenerateAI(cropDataURL, apiKey, btn) {
         apiKey,
         input: {
           prompt: FIXED_PROMPT,
-          image: 'data:image/png;base64,' + base64,
-          aspect_ratio: '1:1'
+          image_input: ['data:image/png;base64,' + base64],
+          output_format: 'jpg'
         }
       })
     });
