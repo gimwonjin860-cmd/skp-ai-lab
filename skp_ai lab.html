@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skiph — AI Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=Noto+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a0a;
+  --surface: #111;
+  --surface2: #161616;
+  --surface3: #1c1c1c;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #f0f0f0;
+  --text2: #aaa;
+  --text3: #666;
+  --white: #ffffff;
+  --sidebar-w: 200px;
+}
+
+html, body { height: 100%; overflow: hidden; background: var(--bg); }
+
+body {
+  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  color: var(--text);
+  display: flex;
+}
+
+/* ── SIDEBAR ───────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  height: 100vh;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.sidebar-logo {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  gap: 8px;
+  flex-shrink: 0;
+}
+.logo-mark {
+  width: 22px; height: 22px;
+  background: var(--white);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+.logo-text {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  color: var(--white);
+  text-transform: uppercase;
+}
+
+.sidebar-nav { flex: 1; padding: 8px 0; overflow-y: auto; }
+
+.nav-group-label {
+  padding: 12px 16px 4px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text2);
+  transition: all .15s;
+  border-left: 2px solid transparent;
+  margin: 1px 0;
+}
+.nav-item svg { flex-shrink: 0; opacity: .6; }
+.nav-item:hover { color: var(--text); background: rgba(255,255,255,.04); }
+.nav-item.active {
+  color: var(--white);
+  background: rgba(255,255,255,.06);
+  border-left-color: var(--white);
+  font-weight: 500;
+}
+.nav-item.active svg { opacity: 1; }
+
+.nav-chip {
+  margin-left: auto;
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: .05em;
+  font-weight: 500;
+}
+.nav-chip.white { background: var(--white); color: var(--bg); }
+.nav-chip.dim { background: rgba(255,255,255,.1); color: var(--text2); }
+
+.sidebar-bottom {
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.user-avatar {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  border: 1px solid var(--border2);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.user-name { font-size: 12px; font-weight: 500; color: var(--text); }
+.user-plan { font-size: 10px; color: var(--text3); margin-top: 1px; }
+.token-badge {
+  margin-left: auto;
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  white-space: nowrap;
+}
+
+/* ── MAIN ──────────────────────────── */
+.main {
+  flex: 1;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* topbar */
+.topbar {
+  height: 52px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 6px;
+  flex-shrink: 0;
+  background: var(--bg);
+}
+.topbar-tab {
+  height: 30px;
+  padding: 0 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all .15s;
+  color: var(--text3);
+  background: transparent;
+  font-family: inherit;
+}
+.topbar-tab:hover { color: var(--text2); background: rgba(255,255,255,.04); }
+.topbar-tab.active { color: var(--white); background: rgba(255,255,255,.08); border-color: var(--border2); }
+.topbar-sep { width: 1px; height: 18px; background: var(--border); margin: 0 6px; }
+.topbar-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.tb-btn {
+  height: 30px; padding: 0 14px;
+  border-radius: 6px; font-size: 12px;
+  font-family: inherit; font-weight: 500;
+  cursor: pointer; transition: all .15s;
+  display: flex; align-items: center; gap: 6px; border: none;
+}
+.tb-btn.ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+.tb-btn.ghost:hover { color: var(--text); border-color: var(--border2); }
+.tb-btn.solid { background: var(--white); color: var(--bg); }
+.tb-btn.solid:hover { background: #e8e8e8; }
+
+/* scroll area */
+.content { flex: 1; overflow-y: auto; padding: 28px 28px 60px; }
+
+/* ── HERO BANNER ───────────────────── */
+.hero-banner {
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 32px;
+  position: relative;
+  height: 220px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .2s;
+}
+.hero-banner:hover { border-color: var(--border2); }
+
+/* animated noise bg */
+.hero-banner::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 50%, rgba(255,255,255,.04) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 50%, rgba(255,255,255,.03) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+/* grid lines decoration */
+.hero-banner::after {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 80% 100% at 50% 50%, black 30%, transparent 100%);
+  pointer-events: none;
+}
+
+.hero-eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 12px;
+  position: relative; z-index: 1;
+}
+.hero-title {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: var(--white);
+  margin-bottom: 6px;
+  position: relative; z-index: 1;
+  line-height: 1.1;
+}
+.hero-sub {
+  font-size: 13px;
+  color: var(--text3);
+  font-weight: 300;
+  position: relative; z-index: 1;
+  margin-bottom: 20px;
+}
+.hero-btns {
+  display: flex; gap: 10px; position: relative; z-index: 1;
+}
+.hero-btn {
+  height: 36px; padding: 0 20px;
+  border-radius: 8px; font-size: 13px;
+  font-family: inherit; font-weight: 500;
+  cursor: pointer; transition: all .2s;
+  display: flex; align-items: center; gap: 7px; border: none;
+}
+.hero-btn.primary { background: var(--white); color: var(--bg); }
+.hero-btn.primary:hover { background: #e8e8e8; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,255,255,.15); }
+.hero-btn.ghost { background: transparent; color: var(--text2); border: 1px solid var(--border2); }
+.hero-btn.ghost:hover { color: var(--white); border-color: rgba(255,255,255,.3); }
+
+/* ── SECTION HEADER ────────────────── */
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -.01em;
+}
+.section-count {
+  font-size: 11px;
+  color: var(--text3);
+  font-weight: 400;
+}
+.section-more {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--text3);
+  cursor: pointer;
+  font-weight: 400;
+  transition: color .15s;
+  text-decoration: none;
+}
+.section-more:hover { color: var(--text2); }
+
+/* ── AI TOOLS ROW (KREA style) ─────── */
+.tools-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.tool-card {
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  transition: all .2s;
+  position: relative;
+}
+.tool-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+.tool-card:hover .tool-thumb-inner { transform: scale(1.04); }
+
+.tool-thumb {
+  height: 140px;
+  overflow: hidden;
+  position: relative;
+  background: var(--surface3);
+}
+.tool-thumb-inner {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .35s ease;
+  font-size: 52px;
+  position: relative;
+}
+
+/* subtle gradient per tool */
+.tool-card.t1 .tool-thumb-inner { background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%); }
+.tool-card.t2 .tool-thumb-inner { background: linear-gradient(135deg, #111 0%, #181818 100%); }
+.tool-card.t3 .tool-thumb-inner { background: linear-gradient(135deg, #0d0d0d 0%, #161616 100%); }
+.tool-card.t4 .tool-thumb-inner { background: linear-gradient(135deg, #101010 0%, #1a1a1a 100%); }
+
+/* visual mock inside thumbs */
+.thumb-visual {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* seamless preview grid */
+.seamless-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 2px;
+  width: 90%; height: 80%;
+  opacity: .5;
+}
+.seamless-cell {
+  border-radius: 2px;
+  background: rgba(255,255,255,.08);
+}
+.seamless-cell:nth-child(odd) { background: rgba(255,255,255,.12); }
+
+/* extract palette */
+.palette-row {
+  display: flex;
+  gap: 4px;
+  width: 80%;
+}
+.pal-swatch {
+  flex: 1; height: 60px;
+  border-radius: 6px;
+}
+
+/* upscale arrow visual */
+.upscale-visual {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 80%;
+}
+.uv-box {
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text3);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .05em;
+}
+.uv-box.small { width: 40px; height: 40px; }
+.uv-box.large { width: 70px; height: 70px; font-size: 11px; color: var(--text2); border-color: rgba(255,255,255,.35); }
+.uv-arrow { color: var(--text3); font-size: 16px; }
+
+/* multiview */
+.mv-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  width: 80%;
+}
+.mv-cell {
+  aspect-ratio: 1;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,.12);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  background: rgba(255,255,255,.04);
+}
+
+.tool-body { padding: 14px 14px 12px; }
+.tool-name { font-size: 13px; font-weight: 600; color: var(--white); margin-bottom: 4px; }
+.tool-desc { font-size: 11px; color: var(--text3); line-height: 1.5; font-weight: 300; }
+.tool-footer {
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.tool-token { font-size: 10px; color: var(--text3); display: flex; align-items: center; gap: 4px; }
+.tool-token b { color: var(--text2); font-weight: 500; }
+.tool-go {
+  width: 22px; height: 22px;
+  border-radius: 5px;
+  background: rgba(255,255,255,.07);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--text3);
+  transition: all .15s;
+}
+.tool-card:hover .tool-go { background: var(--white); color: var(--bg); }
+
+/* ── MODEL TOOLS ROW (비AI) ─────────── */
+.models-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 40px;
+}
+
+.model-card {
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  transition: all .2s;
+}
+.model-card:hover { border-color: var(--border2); }
+.model-card:hover .model-thumb-inner { transform: scale(1.05); }
+
+.model-thumb {
+  height: 100px;
+  overflow: hidden;
+  background: var(--surface3);
+}
+.model-thumb-inner {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+  transition: transform .35s ease;
+}
+.model-body { padding: 10px 12px 12px; }
+.model-name { font-size: 12px; font-weight: 600; color: var(--white); margin-bottom: 3px; }
+.model-desc { font-size: 10px; color: var(--text3); line-height: 1.4; font-weight: 300; }
+.model-footer {
+  padding: 8px 12px;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.model-badge {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.model-badge.free { background: rgba(255,255,255,.08); color: var(--text3); }
+.model-badge.coming { background: rgba(255,255,255,.04); color: var(--text3); border: 1px solid var(--border); }
+.model-go {
+  width: 18px; height: 18px;
+  border-radius: 4px;
+  background: rgba(255,255,255,.06);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: var(--text3);
+  transition: all .15s;
+}
+.model-card:hover .model-go { background: var(--white); color: var(--bg); }
+
+/* model thumb visuals */
+.m1 .model-thumb-inner { background: linear-gradient(135deg, #111, #1a1a1a); }
+.m2 .model-thumb-inner { background: linear-gradient(135deg, #0e0e0e, #181818); }
+.m3 .model-thumb-inner { background: linear-gradient(135deg, #0d0d0d, #161616); }
+.m4 .model-thumb-inner { background: linear-gradient(135deg, #111, #1c1c1c); }
+.m5 .model-thumb-inner { background: linear-gradient(135deg, #0f0f0f, #1a1a1a); }
+
+/* team board visual */
+.board-mini {
+  display: flex; gap: 4px; width: 80%; height: 60%;
+}
+.bm-col {
+  flex: 1; border-radius: 4px;
+  background: rgba(255,255,255,.06);
+  display: flex; flex-direction: column; gap: 3px; padding: 4px;
+}
+.bm-card {
+  height: 12px; border-radius: 2px;
+  background: rgba(255,255,255,.1);
+}
+.bm-card.tall { height: 20px; }
+
+/* vr tour visual */
+.vr-ring {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.2);
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.vr-ring::before {
+  content: '';
+  position: absolute;
+  width: 80%; height: 40%;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.15);
+  transform: rotateX(60deg);
+}
+.vr-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: rgba(255,255,255,.4);
+}
+
+/* spec book visual */
+.spec-lines {
+  display: flex; flex-direction: column; gap: 5px; width: 75%;
+}
+.spec-line {
+  display: flex; gap: 6px; align-items: center;
+}
+.spec-swatch { width: 16px; height: 16px; border-radius: 3px; flex-shrink: 0; }
+.spec-bar { flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,.1); }
+
+/* pbr map visual */
+.pbr-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+  width: 70%;
+}
+.pbr-cell {
+  aspect-ratio: 1;
+  border-radius: 4px;
+  background: rgba(255,255,255,.07);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px;
+  color: var(--text3);
+  font-weight: 600;
+  letter-spacing: .05em;
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,.08); border-radius: 2px; }
+
+/* fade in */
+@keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+.content > * { animation: fadeUp .4s ease both; }
+.content > *:nth-child(2) { animation-delay: .05s; }
+.content > *:nth-child(3) { animation-delay: .1s; }
+.content > *:nth-child(4) { animation-delay: .15s; }
+.content > *:nth-child(5) { animation-delay: .18s; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark"></div>
+    <span class="logo-text">Skiph</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">메뉴</div>
+    <div class="nav-item active">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 6.5L8 2L14 6.5V14H10V10H6V14H2V6.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      홈
+    </div>
+    <div class="nav-group-label" style="margin-top:6px">AI 툴</div>
+    <div class="nav-item">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2L14 5.5V10.5L8 14L2 10.5V5.5L8 2Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      Image-to-3D
+      <span class="nav-chip white">New</span>
+    </div>
+    <div class="nav-item">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>
+      Seamless Texture
+    </div>
+    <div class="nav-item">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="5" cy="5" r="2.5" stroke="currentColor" stroke-width="1.3"/><circle cx="11" cy="5" r="2.5" stroke="currentColor" stroke-width="1.3"/><circle cx="5" cy="11" r="2.5" stroke="currentColor" stroke-width="1.3"/><circle cx="11" cy="11" r="2.5" stroke="currentColor" stroke-width="1.3"/></svg>
+      Texture Extract
+    </div>
+    <div class="nav-item">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 2L6 8L2 14H14V2H2Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+      AI Upscaling
+    </div>
+    <div class="nav-item">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="4" height="12" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="8" y="2" width="4" height="7" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="8" y="11" width="4" height="3" rx="1.5" stroke="currentColor" stroke-width="1.3"/></svg>
+      Team Board
+      <span class="nav-chip dim">Beta</span>
+    </div>
+    <div class="nav-item">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M8 2C8 2 10 5 10 8C10 11 8 14 8 14M8 2C8 2 6 5 6 8C6 11 8 14 8 14M2 8H14" stroke="currentColor" stroke-width="1.3"/></svg>
+      AI VR Tour
+      <span class="nav-chip dim">Soon</span>
+    </div>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="user-avatar">GW</div>
+    <div>
+      <div class="user-name">gimwonjin</div>
+      <div class="user-plan">Pro</div>
+    </div>
+    <div class="token-badge">47 토큰</div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- topbar -->
+  <div class="topbar">
+    <button class="topbar-tab active">AI Lab</button>
+    <button class="topbar-tab">에셋</button>
+    <button class="topbar-tab">히스토리</button>
+    <div class="topbar-sep"></div>
+    <button class="topbar-tab">팀 보드</button>
+    <div class="topbar-right">
+      <button class="tb-btn ghost">
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M11 11L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        검색
+      </button>
+      <button class="tb-btn solid">+ 새 프로젝트</button>
+    </div>
+  </div>
+
+  <!-- scroll content -->
+  <div class="content">
+
+    <!-- ① IMAGE-TO-3D HERO BANNER -->
+    <div class="section-head">
+      <span class="section-title">Image-to-3D</span>
+    </div>
+    <div class="hero-banner">
+      <div class="hero-eyebrow">소재 사진 한 장으로 완성되는 3D</div>
+      <div class="hero-title">Start by generating a 3D model</div>
+      <div class="hero-sub">실제 소재 이미지를 고품질 3D 메시 + PBR 텍스처로 자동 변환</div>
+      <div class="hero-btns">
+        <button class="hero-btn primary">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2L14 5.5V10.5L8 14L2 10.5V5.5L8 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          3D 생성하기
+        </button>
+        <button class="hero-btn ghost">자세히 보기 →</button>
+      </div>
+    </div>
+
+    <!-- ② AI TOOLS -->
+    <div class="section-head">
+      <span class="section-title">AI 기능</span>
+      <span class="section-count">4개</span>
+      <a class="section-more">전체 보기 →</a>
+    </div>
+    <div class="tools-row">
+
+      <!-- Seamless Texture -->
+      <div class="tool-card t1">
+        <div class="tool-thumb">
+          <div class="tool-thumb-inner">
+            <div class="thumb-visual">
+              <div class="seamless-grid">
+                <div class="seamless-cell"></div><div class="seamless-cell"></div><div class="seamless-cell"></div><div class="seamless-cell"></div>
+                <div class="seamless-cell"></div><div class="seamless-cell"></div><div class="seamless-cell"></div><div class="seamless-cell"></div>
+                <div class="seamless-cell"></div><div class="seamless-cell"></div><div class="seamless-cell"></div><div class="seamless-cell"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tool-body">
+          <div class="tool-name">Seamless Texture</div>
+          <div class="tool-desc">FFT 가우시안 필터로 경계 없는 심리스 텍스처 생성 · 4× 업스케일</div>
+        </div>
+        <div class="tool-footer">
+          <div class="tool-token">◆ <b>2 토큰</b> / 회</div>
+          <div class="tool-go">→</div>
+        </div>
+      </div>
+
+      <!-- Texture Extract -->
+      <div class="tool-card t2">
+        <div class="tool-thumb">
+          <div class="tool-thumb-inner">
+            <div class="thumb-visual">
+              <div class="palette-row">
+                <div class="pal-swatch" style="background:#2a2a2a"></div>
+                <div class="pal-swatch" style="background:#444"></div>
+                <div class="pal-swatch" style="background:#666"></div>
+                <div class="pal-swatch" style="background:#999"></div>
+                <div class="pal-swatch" style="background:#bbb"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tool-body">
+          <div class="tool-name">Texture Extract</div>
+          <div class="tool-desc">소재 이미지에서 색상 팔레트 · PBR 파라미터 · Roughness 자동 추출</div>
+        </div>
+        <div class="tool-footer">
+          <div class="tool-token">◆ <b>2 토큰</b> / 회</div>
+          <div class="tool-go">→</div>
+        </div>
+      </div>
+
+      <!-- AI Upscaling -->
+      <div class="tool-card t3">
+        <div class="tool-thumb">
+          <div class="tool-thumb-inner">
+            <div class="thumb-visual">
+              <div class="upscale-visual">
+                <div class="uv-box small">256</div>
+                <div class="uv-arrow">→</div>
+                <div class="uv-box large">1024</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tool-body">
+          <div class="tool-name">AI Upscaling</div>
+          <div class="tool-desc">Real-ESRGAN 기반 최대 4× 업스케일 · 소재 디테일 보존 최적화</div>
+        </div>
+        <div class="tool-footer">
+          <div class="tool-token">◆ <b>1 토큰</b> / 회</div>
+          <div class="tool-go">→</div>
+        </div>
+      </div>
+
+      <!-- Multi-View Gen -->
+      <div class="tool-card t4">
+        <div class="tool-thumb">
+          <div class="tool-thumb-inner">
+            <div class="thumb-visual">
+              <div class="mv-grid">
+                <div class="mv-cell" style="font-size:12px">↙</div>
+                <div class="mv-cell" style="font-size:12px">↓</div>
+                <div class="mv-cell" style="font-size:12px">↘</div>
+                <div class="mv-cell" style="font-size:12px">←</div>
+                <div class="mv-cell" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.25)">◆</div>
+                <div class="mv-cell" style="font-size:12px">→</div>
+                <div class="mv-cell" style="font-size:12px">↖</div>
+                <div class="mv-cell" style="font-size:12px">↑</div>
+                <div class="mv-cell" style="font-size:12px">↗</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tool-body">
+          <div class="tool-name">Multi-View Gen</div>
+          <div class="tool-desc">Zero123++ 기반 사진 1장으로 다각도 8방향 뷰 자동 생성</div>
+        </div>
+        <div class="tool-footer">
+          <div class="tool-token">◆ <b>2 토큰</b> / 회</div>
+          <div class="tool-go">→</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ③ MODEL TOOLS (비AI) -->
+    <div class="section-head">
+      <span class="section-title">모델 기능</span>
+      <span class="section-count">5개</span>
+      <a class="section-more">전체 보기 →</a>
+    </div>
+    <div class="models-row">
+
+      <!-- Team Board -->
+      <div class="model-card m1">
+        <div class="model-thumb">
+          <div class="model-thumb-inner">
+            <div class="board-mini">
+              <div class="bm-col"><div class="bm-card"></div><div class="bm-card tall"></div><div class="bm-card"></div></div>
+              <div class="bm-col"><div class="bm-card tall"></div><div class="bm-card"></div></div>
+              <div class="bm-col"><div class="bm-card"></div><div class="bm-card"></div><div class="bm-card tall"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="model-body">
+          <div class="model-name">Team Board</div>
+          <div class="model-desc">팀 협업 · 작업 관리 · 에셋 공유</div>
+        </div>
+        <div class="model-footer">
+          <span class="model-badge free">Free</span>
+          <div class="model-go">→</div>
+        </div>
+      </div>
+
+      <!-- AI VR Tour -->
+      <div class="model-card m2">
+        <div class="model-thumb">
+          <div class="model-thumb-inner">
+            <div class="vr-ring"><div class="vr-dot"></div></div>
+          </div>
+        </div>
+        <div class="model-body">
+          <div class="model-name">AI VR Tour</div>
+          <div class="model-desc">3D 공간 VR 인터랙티브 투어 생성</div>
+        </div>
+        <div class="model-footer">
+          <span class="model-badge coming">Coming</span>
+          <div class="model-go">→</div>
+        </div>
+      </div>
+
+      <!-- Spec Book -->
+      <div class="model-card m3">
+        <div class="model-thumb">
+          <div class="model-thumb-inner">
+            <div class="spec-lines">
+              <div class="spec-line"><div class="spec-swatch" style="background:#333"></div><div class="spec-bar" style="width:80%"></div></div>
+              <div class="spec-line"><div class="spec-swatch" style="background:#555"></div><div class="spec-bar" style="width:60%"></div></div>
+              <div class="spec-line"><div class="spec-swatch" style="background:#777"></div><div class="spec-bar" style="width:90%"></div></div>
+              <div class="spec-line"><div class="spec-swatch" style="background:#999"></div><div class="spec-bar" style="width:45%"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="model-body">
+          <div class="model-name">Spec Book</div>
+          <div class="model-desc">소재 스펙 · 색상 · 데이터 관리</div>
+        </div>
+        <div class="model-footer">
+          <span class="model-badge free">Free</span>
+          <div class="model-go">→</div>
+        </div>
+      </div>
+
+      <!-- PBR Map -->
+      <div class="model-card m4">
+        <div class="model-thumb">
+          <div class="model-thumb-inner">
+            <div class="pbr-grid">
+              <div class="pbr-cell">ALB</div>
+              <div class="pbr-cell">RGH</div>
+              <div class="pbr-cell">NRM</div>
+              <div class="pbr-cell">MET</div>
+            </div>
+          </div>
+        </div>
+        <div class="model-body">
+          <div class="model-name">PBR Map</div>
+          <div class="model-desc">Albedo · Normal · Roughness 맵 관리</div>
+        </div>
+        <div class="model-footer">
+          <span class="model-badge free">Free</span>
+          <div class="model-go">→</div>
+        </div>
+      </div>
+
+      <!-- Auto Environment -->
+      <div class="model-card m5">
+        <div class="model-thumb">
+          <div class="model-thumb-inner">
+            <div style="width:60px;height:60px;border-radius:50%;border:1.5px solid rgba(255,255,255,.2);position:relative;overflow:hidden">
+              <div style="position:absolute;bottom:0;left:0;right:0;height:40%;background:rgba(255,255,255,.08)"></div>
+              <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.25)"></div>
+            </div>
+          </div>
+        </div>
+        <div class="model-body">
+          <div class="model-name">Auto Environment</div>
+          <div class="model-desc">HDRI 환경맵 자동 생성 · 배치</div>
+        </div>
+        <div class="model-footer">
+          <span class="model-badge coming">Coming</span>
+          <div class="model-go">→</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
