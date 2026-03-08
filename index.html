@@ -726,7 +726,7 @@ body {
 
 
       <!-- AI Upscaling -->
-      <div class="tool-card t3">
+      <div class="tool-card t3" onclick="showPage('upscale')" style="cursor:pointer">
         <div class="tool-thumb">
           <video class="tool-video" src="" muted loop playsinline data-src="upscale_preview.mp4"></video>
           <div class="tool-thumb-inner tool-fallback">
@@ -1206,6 +1206,154 @@ body {
   </div>
 </div>
 
+<!-- ═══════════════════════════ AI UPSCALING PAGE ═══════════════════════════ -->
+<div id="page-upscale" style="display:none;flex:1;flex-direction:column;height:100%;overflow:hidden">
+
+  <!-- 헤더 -->
+  <div style="height:44px;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:8px;flex-shrink:0">
+    <span style="font-size:11px;color:var(--text3);letter-spacing:.04em">
+      <span style="cursor:pointer;transition:color .15s" onmouseover="this.style.color='var(--text2)'" onmouseout="this.style.color='var(--text3)'" onclick="showPage('home')">AI Lab</span>
+      <span style="margin:0 6px;color:var(--border)">›</span>
+      <span style="color:var(--text1)">AI Upscaling</span>
+    </span>
+  </div>
+
+  <!-- 2컬럼 레이아웃 -->
+  <div style="flex:1;display:flex;overflow:hidden">
+
+    <!-- 왼쪽 패널 280px -->
+    <div style="width:280px;border-right:1px solid var(--border);padding:20px 16px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex-shrink:0">
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--text1);margin-bottom:4px">AI Upscaling</div>
+        <div style="font-size:11px;color:var(--text3);line-height:1.5">이미지를 2×, 4× 업스케일<br>Clarity AI로 디테일 복원</div>
+      </div>
+
+      <!-- API Key -->
+      <div>
+        <div style="font-size:10px;letter-spacing:.08em;color:var(--text3);margin-bottom:6px">REPLICATE API KEY</div>
+        <input id="up-api-key" type="password" placeholder="r8_••••••••••••••••••••••••••••••••"
+          style="width:100%;box-sizing:border-box;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--text1);font-family:inherit;outline:none">
+      </div>
+
+      <!-- 상태 -->
+      <div id="up-status" style="font-size:11px;color:var(--text3);min-height:16px"></div>
+
+      <!-- 스케일 선택 -->
+      <div>
+        <div style="font-size:10px;letter-spacing:.08em;color:var(--text3);margin-bottom:8px">업스케일 배율</div>
+        <div style="display:flex;gap:6px">
+          <button onclick="upSetScale(2)" id="up-scale-2"
+            style="flex:1;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--white);color:var(--bg);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer">
+            2×
+          </button>
+          <button onclick="upSetScale(4)" id="up-scale-4"
+            style="flex:1;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer">
+            4×
+          </button>
+          <button onclick="upSetScale(8)" id="up-scale-8"
+            style="flex:1;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer">
+            8×
+          </button>
+        </div>
+      </div>
+
+      <!-- 창의성 슬라이더 -->
+      <div>
+        <div style="font-size:10px;letter-spacing:.08em;color:var(--text3);margin-bottom:8px">CREATIVITY <span id="up-creativity-val" style="color:var(--text2)">0.35</span></div>
+        <input id="up-creativity" type="range" min="0" max="1" step="0.05" value="0.35"
+          oninput="document.getElementById('up-creativity-val').textContent=parseFloat(this.value).toFixed(2)"
+          style="width:100%;accent-color:var(--white);cursor:pointer">
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-top:3px">
+          <span>보수적</span><span>창의적</span>
+        </div>
+      </div>
+
+      <!-- 선명도 슬라이더 -->
+      <div>
+        <div style="font-size:10px;letter-spacing:.08em;color:var(--text3);margin-bottom:8px">RESEMBLANCE <span id="up-resemblance-val" style="color:var(--text2)">0.6</span></div>
+        <input id="up-resemblance" type="range" min="0" max="1" step="0.05" value="0.6"
+          oninput="document.getElementById('up-resemblance-val').textContent=parseFloat(this.value).toFixed(2)"
+          style="width:100%;accent-color:var(--white);cursor:pointer">
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-top:3px">
+          <span>자유</span><span>원본 유지</span>
+        </div>
+      </div>
+
+      <!-- 실행 버튼 -->
+      <button id="up-run-btn" onclick="upProcess()"
+        style="height:50px;border-radius:12px;background:var(--white);color:var(--bg);border:none;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:.04em;transition:opacity .15s;margin-top:4px">
+        UPSCALE
+      </button>
+
+      <!-- 다운로드 -->
+      <button id="up-download-btn" onclick="upDownload()"
+        style="height:40px;border-radius:10px;background:var(--surface);color:var(--text2);border:1px solid var(--border);font-size:12px;font-family:inherit;cursor:pointer;display:none">
+        ↓ 다운로드
+      </button>
+
+      <!-- 초기화 -->
+      <button onclick="upReset()"
+        style="height:40px;border-radius:10px;background:transparent;color:var(--text3);border:1px solid var(--border);font-size:12px;font-family:inherit;cursor:pointer">
+        ↺ 초기화
+      </button>
+    </div>
+
+    <!-- 오른쪽: 슬라이더 비교 -->
+    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative">
+
+      <!-- 업로드 플레이스홀더 (이미지 없을 때) -->
+      <div id="up-upload-placeholder" style="flex:1;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:8px;color:var(--text3)"
+        onclick="document.getElementById('up-file-input').click()">
+        <input type="file" id="up-file-input" accept="image/*" style="display:none" onchange="upLoadFile(this)">
+        <div style="font-size:32px">↑</div>
+        <div style="font-size:13px">이미지 업로드</div>
+        <div style="font-size:10px;color:var(--text3)">클릭 또는 드래그 앤 드롭</div>
+      </div>
+
+      <!-- 비교 슬라이더 컨테이너 (이미지 있을 때) -->
+      <div id="up-compare-wrap" style="display:none;flex:1;position:relative;overflow:hidden;cursor:col-resize;user-select:none">
+
+        <!-- AFTER (전체 배경) -->
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#111">
+          <img id="up-after-img" style="max-width:100%;max-height:100%;object-fit:contain;display:block">
+        </div>
+        <div style="position:absolute;top:12px;right:14px;font-size:10px;letter-spacing:.08em;color:rgba(255,255,255,.5);z-index:3;pointer-events:none">AFTER</div>
+
+        <!-- BEFORE (왼쪽 클립) -->
+        <div id="up-before-clip" style="position:absolute;inset:0;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#111">
+          <img id="up-before-img" style="max-width:100%;max-height:100%;object-fit:contain;display:block">
+        </div>
+        <div id="up-before-label" style="position:absolute;top:12px;left:14px;font-size:10px;letter-spacing:.08em;color:rgba(255,255,255,.5);z-index:5;pointer-events:none">BEFORE</div>
+
+        <!-- 슬라이더 라인 -->
+        <div id="up-slider-line" style="position:absolute;top:0;bottom:0;width:2px;background:var(--white);z-index:6;pointer-events:none;transform:translateX(-50%)"></div>
+
+        <!-- 슬라이더 핸들 -->
+        <div id="up-slider-handle" style="position:absolute;top:50%;width:36px;height:36px;border-radius:50%;background:var(--white);z-index:7;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(0,0,0,.5);pointer-events:none">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M5 4L2 8L5 12M11 4L14 8L11 12" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <!-- 로딩 오버레이 -->
+        <div id="up-loading" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,.7);z-index:10;align-items:center;justify-content:center;flex-direction:column;gap:12px">
+          <div style="width:28px;height:28px;border:2px solid rgba(255,255,255,.15);border-top-color:var(--white);border-radius:50%;animation:spin 1s linear infinite"></div>
+          <div id="up-loading-text" style="font-size:11px;color:var(--text2)">업스케일 처리 중...</div>
+        </div>
+      </div>
+
+      <!-- 하단 정보 바 -->
+      <div id="up-info-bar" style="height:32px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 14px;flex-shrink:0">
+        <span id="up-before-info" style="font-size:10px;color:var(--text3)"></span>
+        <span style="font-size:9px;letter-spacing:.1em;color:rgba(255,255,255,.2)">AI GENERATED</span>
+        <span id="up-after-info" style="font-size:10px;color:var(--text3)"></span>
+      </div>
+
+    </div>
+  </div>
+</div>
+<!-- /page-upscale -->
+
 <style>
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes smPulse { 0%,100%{opacity:1} 50%{opacity:.25} }
@@ -1218,10 +1366,12 @@ function showPage(id) {
   const home = document.getElementById('page-home');
   const seamless = document.getElementById('page-seamless');
   const texture = document.getElementById('page-texture');
+  const upscale = document.getElementById('page-upscale');
   if (!home || !seamless) return;
   home.style.display = id === 'home' ? 'flex' : 'none';
   seamless.style.display = id === 'seamless' ? 'flex' : 'none';
   if (texture) texture.style.display = id === 'texture' ? 'flex' : 'none';
+  if (upscale) upscale.style.display = id === 'upscale' ? 'flex' : 'none';
 
   document.querySelectorAll('.nav-item').forEach(el => {
     el.classList.toggle('active', el.dataset.page === id);
@@ -1242,6 +1392,7 @@ document.querySelectorAll('.nav-item').forEach(el => {
   if (el.textContent.includes('Seamless')) el.onclick = () => showPage('seamless');
   if (el.textContent.includes('홈')) el.onclick = () => showPage('home');
   if (el.textContent.includes('Texture Extraction')) el.onclick = () => showPage('texture');
+  if (el.textContent.includes('AI Upscaling')) el.onclick = () => showPage('upscale');
 });
 
 /* ═══════════════════════════ VIDEO HOVER ═══════════════════════════ */
@@ -1899,6 +2050,216 @@ async function smDownloadUpscale(){
 
 // 초기 홈 표시
 showPage('home');
+
+/* ═══════════════════════════ AI UPSCALING ═══════════════════════════ */
+let upFile = null, upResultURL = null, upScale = 2;
+let upSliderX = 50; // percentage
+let upDragging = false;
+
+function upSetScale(s) {
+  upScale = s;
+  [2,4,8].forEach(n => {
+    const btn = document.getElementById('up-scale-'+n);
+    if (!btn) return;
+    btn.style.background = n === s ? 'var(--white)' : 'var(--surface)';
+    btn.style.color = n === s ? 'var(--bg)' : 'var(--text2)';
+  });
+}
+
+function upSetSlider(pct) {
+  upSliderX = Math.max(2, Math.min(98, pct));
+  const clip = document.getElementById('up-before-clip');
+  const line = document.getElementById('up-slider-line');
+  const handle = document.getElementById('up-slider-handle');
+  const label = document.getElementById('up-before-label');
+  if (clip) clip.style.width = upSliderX + '%';
+  if (line) line.style.left = upSliderX + '%';
+  if (handle) handle.style.left = upSliderX + '%';
+  if (label) label.style.opacity = upSliderX > 10 ? '1' : '0';
+}
+
+function upInitSlider() {
+  const wrap = document.getElementById('up-compare-wrap');
+  if (!wrap) return;
+
+  wrap.addEventListener('mousedown', e => {
+    upDragging = true;
+    upOnMove(e);
+  });
+  wrap.addEventListener('mousemove', e => {
+    if (!upDragging) return;
+    upOnMove(e);
+  });
+  document.addEventListener('mouseup', () => { upDragging = false; });
+
+  // 터치 지원
+  wrap.addEventListener('touchstart', e => { upDragging = true; upOnTouch(e); }, {passive:true});
+  wrap.addEventListener('touchmove', e => { if (upDragging) upOnTouch(e); }, {passive:true});
+  document.addEventListener('touchend', () => { upDragging = false; });
+}
+
+function upOnMove(e) {
+  const wrap = document.getElementById('up-compare-wrap');
+  const rect = wrap.getBoundingClientRect();
+  const pct = ((e.clientX - rect.left) / rect.width) * 100;
+  upSetSlider(pct);
+}
+
+function upOnTouch(e) {
+  const wrap = document.getElementById('up-compare-wrap');
+  const rect = wrap.getBoundingClientRect();
+  const touch = e.touches[0];
+  const pct = ((touch.clientX - rect.left) / rect.width) * 100;
+  upSetSlider(pct);
+}
+
+function upLoadFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  upFile = file;
+  upResultURL = null;
+  document.getElementById('up-download-btn').style.display = 'none';
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    // before 이미지 세팅
+    const beforeImg = document.getElementById('up-before-img');
+    beforeImg.src = e.target.result;
+
+    // after는 일단 같은 이미지로 (업스케일 전)
+    const afterImg = document.getElementById('up-after-img');
+    afterImg.src = e.target.result;
+    afterImg.style.display = 'block';
+
+    // 플레이스홀더 숨기고 비교 wrap 표시
+    document.getElementById('up-upload-placeholder').style.display = 'none';
+    document.getElementById('up-compare-wrap').style.display = 'block';
+    upSetSlider(50);
+
+    // 원본 크기 표시
+    const tmp = new Image();
+    tmp.onload = () => {
+      document.getElementById('up-before-info').textContent = `원본: ${tmp.width} × ${tmp.height}px`;
+    };
+    tmp.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+
+  const apiKey = document.getElementById('up-api-key').value.trim();
+  document.getElementById('up-status').innerHTML = apiKey
+    ? '<span style="color:#4ade80">✓ Clarity Upscaler 준비됨</span>'
+    : '<span style="color:var(--text3)">API 키를 입력하세요</span>';
+}
+
+async function upProcess() {
+  if (!upFile) { alert('이미지를 먼저 업로드하세요'); return; }
+  const apiKey = document.getElementById('up-api-key').value.trim();
+  if (!apiKey) { alert('Replicate API 키를 입력하세요'); return; }
+
+  const loading = document.getElementById('up-loading');
+  loading.style.display = 'flex';
+  document.getElementById('up-run-btn').disabled = true;
+  document.getElementById('up-status').innerHTML = '<span style="color:var(--text2)">업스케일 처리 중...</span>';
+
+  try {
+    const base64 = await new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result.split(',')[1]);
+      r.onerror = rej;
+      r.readAsDataURL(upFile);
+    });
+
+    const creativity = parseFloat(document.getElementById('up-creativity').value);
+    const resemblance = parseFloat(document.getElementById('up-resemblance').value);
+
+    const resp = await fetch('/api/upscale', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        apiKey,
+        input: {
+          image: 'data:image/png;base64,' + base64,
+          scale_factor: upScale,
+          creativity,
+          resemblance,
+          output_format: 'png'
+        }
+      })
+    });
+
+    if (!resp.ok) throw new Error('API 오류: ' + resp.status);
+    const data = await resp.json();
+    const outputUrl = data.output;
+    if (!outputUrl) throw new Error('결과 없음');
+
+    upResultURL = outputUrl;
+
+    // after 이미지를 결과로 교체
+    const afterImg = document.getElementById('up-after-img');
+    afterImg.src = outputUrl;
+    document.getElementById('up-download-btn').style.display = 'block';
+
+    const tmp = new Image();
+    tmp.onload = () => {
+      document.getElementById('up-after-info').textContent = `업스케일: ${tmp.width} × ${tmp.height}px`;
+    };
+    tmp.src = outputUrl;
+
+    document.getElementById('up-status').innerHTML = '<span style="color:#4ade80">✓ 완료 — 슬라이더를 드래그하세요</span>';
+
+  } catch(e) {
+    document.getElementById('up-status').innerHTML = `<span style="color:#f87171">오류: ${e.message}</span>`;
+  } finally {
+    loading.style.display = 'none';
+    document.getElementById('up-run-btn').disabled = false;
+  }
+}
+
+async function upDownload() {
+  if (!upResultURL) return;
+  try {
+    const r = await fetch(upResultURL);
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'skiph_upscaled_' + upScale + 'x_' + Date.now() + '.png';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  } catch { window.open(upResultURL, '_blank'); }
+}
+
+function upReset() {
+  upFile = null; upResultURL = null;
+  document.getElementById('up-file-input').value = '';
+  document.getElementById('up-upload-placeholder').style.display = 'flex';
+  document.getElementById('up-compare-wrap').style.display = 'none';
+  document.getElementById('up-before-info').textContent = '';
+  document.getElementById('up-after-info').textContent = '';
+  document.getElementById('up-download-btn').style.display = 'none';
+  document.getElementById('up-status').textContent = '';
+  document.getElementById('up-api-key').value = '';
+  upSetScale(2);
+  upSetSlider(50);
+}
+
+// 드래그 앤 드롭 + 슬라이더 초기화
+document.addEventListener('DOMContentLoaded', () => {
+  upInitSlider();
+
+  const placeholder = document.getElementById('up-upload-placeholder');
+  if (!placeholder) return;
+  placeholder.addEventListener('dragover', e => { e.preventDefault(); placeholder.style.opacity = '.5'; });
+  placeholder.addEventListener('dragleave', () => { placeholder.style.opacity = '1'; });
+  placeholder.addEventListener('drop', e => {
+    e.preventDefault(); placeholder.style.opacity = '1';
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const dt = new DataTransfer(); dt.items.add(file);
+      const input = document.getElementById('up-file-input');
+      input.files = dt.files; upLoadFile(input);
+    }
+  });
+});
 </script>
 </body>
 </html>
