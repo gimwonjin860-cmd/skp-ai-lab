@@ -1716,7 +1716,7 @@ async function txGenerateAI(cropDataURL, apiKey, btn) {
     // base64 추출
     const base64 = cropDataURL.split(',')[1];
 
-    const FIXED_PROMPT = "A flat seamless tileable 2D albedo texture map of this exact material, photorealistic, no background, no shadows, no perspective, square format, architectural CG texture";
+    const FIXED_PROMPT = "Create a perfectly seamless tileable texture map based on the exact material shown in this image. Match the color, pattern, grain, and surface detail precisely. Output must be flat 2D with no shadows, no perspective distortion, no lighting, square format, photorealistic albedo map ready for 3D rendering.";
 
     // Vercel 프록시 경유 (CORS 우회)
     const proxyResp = await fetch('/api/texture', {
