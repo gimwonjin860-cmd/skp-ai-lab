@@ -20,8 +20,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         input: {
-          image,
-          mask,
+          image, mask,
           prompt: "seamless tileable texture, natural material surface, continuous pattern, no seams",
           steps: 20,
           guidance: 30,
@@ -56,14 +55,14 @@ export default async function handler(req, res) {
 
     if (!outputUrl) return res.status(504).json({ error: '타임아웃' });
 
-    // 이미지를 스트리밍으로 프록시 (base64 변환 X → 용량 문제 없음)
+    // 이미지를 버퍼로 받아서 응답
     const imgRes = await fetch(outputUrl);
+    const arrayBuffer = await imgRes.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
     res.setHeader('Content-Type', 'image/png');
-    res.setHeader('Cache-Control', 'no-store');
-    imgRes.body.pipeTo(new WritableStream({
-      write(chunk) { res.write(chunk); },
-      close() { res.end(); }
-    }));
+    res.setHeader('Content-Length', buffer.length);
+    return res.status(200).send(buffer);
 
   } catch (e) {
     return res.status(500).json({ error: String(e) });
