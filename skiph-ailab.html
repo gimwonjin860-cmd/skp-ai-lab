@@ -50,6 +50,11 @@ body {
   gap: 8px;
   flex-shrink: 0;
 }
+.sidebar-logo-img {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+}
 .logo-mark {
   width: 22px; height: 22px;
   background: var(--white);
@@ -542,6 +547,24 @@ body {
 .spec-swatch { width: 16px; height: 16px; border-radius: 3px; flex-shrink: 0; }
 .spec-bar { flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,.1); }
 
+/* video in tool thumb */
+.tool-thumb { position: relative; }
+.tool-video {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity .3s ease;
+  z-index: 2;
+}
+.tool-video.playing { opacity: 1; }
+.tool-fallback {
+  position: absolute; inset: 0;
+  transition: opacity .3s ease;
+  z-index: 1;
+}
+.tool-video.playing + .tool-fallback { opacity: 0; }
+
 /* pbr map visual */
 .pbr-grid {
   display: grid;
@@ -579,8 +602,13 @@ body {
 <!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="sidebar-logo">
-    <div class="logo-mark"></div>
-    <span class="logo-text">Skiph</span>
+    <!-- 로고: src에 실제 파일 경로 넣으면 됨 (예: /assets/logo.svg) -->
+    <img src="./logo.svg" alt="Skiph" class="sidebar-logo-img"
+         onerror="this.style.display='none';document.querySelector('.logo-fallback').style.display='flex'"/>
+    <div class="logo-fallback" style="display:flex;align-items:center;gap:8px">
+      <div class="logo-mark"></div>
+      <span class="logo-text">Skiph</span>
+    </div>
   </div>
   <nav class="sidebar-nav">
     <div class="nav-group-label">메뉴</div>
@@ -629,19 +657,16 @@ body {
 
 <!-- MAIN -->
 <div class="main">
+  <!-- HOME PAGE -->
+  <div id="page-home" style="flex:1;flex-direction:column;display:flex;height:100vh;overflow:hidden">
+
   <!-- topbar -->
   <div class="topbar">
-    <button class="topbar-tab active">AI Lab</button>
-    <button class="topbar-tab">에셋</button>
-    <button class="topbar-tab">히스토리</button>
-    <div class="topbar-sep"></div>
-    <button class="topbar-tab">팀 보드</button>
-    <div class="topbar-right">
+    <div class="topbar-right" style="margin-left:0">
       <button class="tb-btn ghost">
         <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M11 11L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         검색
       </button>
-      <button class="tb-btn solid">+ 새 프로젝트</button>
     </div>
   </div>
 
@@ -674,9 +699,10 @@ body {
     <div class="tools-row">
 
       <!-- Seamless Texture -->
-      <div class="tool-card t1">
+      <div class="tool-card t1" onclick="window.location.href='seamless-demo.html'" style="cursor:pointer">
         <div class="tool-thumb">
-          <div class="tool-thumb-inner">
+          <video class="tool-video" src="" muted loop playsinline data-src="seamless_preview.mp4"></video>
+          <div class="tool-thumb-inner tool-fallback">
             <div class="thumb-visual">
               <div class="seamless-grid">
                 <div class="seamless-cell"></div><div class="seamless-cell"></div><div class="seamless-cell"></div><div class="seamless-cell"></div>
@@ -699,7 +725,8 @@ body {
       <!-- Texture Extract -->
       <div class="tool-card t2">
         <div class="tool-thumb">
-          <div class="tool-thumb-inner">
+          <video class="tool-video" src="" muted loop playsinline data-src="extract_preview.mp4"></video>
+          <div class="tool-thumb-inner tool-fallback">
             <div class="thumb-visual">
               <div class="palette-row">
                 <div class="pal-swatch" style="background:#2a2a2a"></div>
@@ -724,7 +751,8 @@ body {
       <!-- AI Upscaling -->
       <div class="tool-card t3">
         <div class="tool-thumb">
-          <div class="tool-thumb-inner">
+          <video class="tool-video" src="" muted loop playsinline data-src="upscale_preview.mp4"></video>
+          <div class="tool-thumb-inner tool-fallback">
             <div class="thumb-visual">
               <div class="upscale-visual">
                 <div class="uv-box small">256</div>
@@ -747,7 +775,8 @@ body {
       <!-- Multi-View Gen -->
       <div class="tool-card t4">
         <div class="tool-thumb">
-          <div class="tool-thumb-inner">
+          <video class="tool-video" src="" muted loop playsinline data-src="multiview_preview.mp4"></video>
+          <div class="tool-thumb-inner tool-fallback">
             <div class="thumb-visual">
               <div class="mv-grid">
                 <div class="mv-cell" style="font-size:12px">↙</div>
@@ -888,7 +917,432 @@ body {
     </div>
 
   </div>
-</div>
+  </div><!-- /page-home -->
 
+<!-- ═══════════════════════════════════
+  SEAMLESS TEXTURE PAGE
+═══════════════════════════════════ -->
+<div id="page-seamless" style="display:none;flex:1;flex-direction:column;height:100%;overflow:hidden">
+
+  <!-- topbar -->
+  <div class="topbar" style="justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text3)">
+      <span style="cursor:pointer;transition:color .15s" onmouseover="this.style.color='var(--text2)'" onmouseout="this.style.color='var(--text3)'" onclick="showPage('home')">AI Lab</span>
+      <span style="color:#222">/</span>
+      <span style="color:var(--text2)">Seamless Texture</span>
+    </div>
+    <span style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border);color:var(--text3)">◆ 2 토큰 / 회</span>
+  </div>
+
+  <!-- content -->
+  <div style="flex:1;overflow-y:auto;padding:36px 40px 60px">
+    <div>
+
+      <!-- title -->
+      <div style="margin-bottom:32px">
+        <h1 style="font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:6px">Seamless Texture</h1>
+        <p style="font-size:13px;color:var(--text3);font-weight:300">소재 이미지 업로드 → 타공 / 일반 자동 감지 → 심리스 변환 → 4× 업스케일</p>
+      </div>
+
+      <!-- API KEY -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
+        <span style="font-size:11px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap">Replicate Key</span>
+        <input type="password" id="sm-api-key" placeholder="r8_xxxx... (없으면 업스케일 스킵)" oninput="smUpdateApiStatus()"
+          style="flex:1;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-family:inherit;font-size:12px;outline:none;transition:border-color .2s"
+          onfocus="this.style.borderColor='rgba(255,255,255,.2)'" onblur="this.style.borderColor='var(--border)'"/>
+        <span id="sm-api-badge" style="font-size:10px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);color:var(--text3);white-space:nowrap;background:rgba(255,255,255,.04)">업스케일 OFF</span>
+      </div>
+
+      <!-- UPLOAD ZONE -->
+      <div id="sm-upload-zone"
+        style="border:1.5px dashed rgba(255,255,255,.1);border-radius:16px;padding:52px 40px;text-align:center;cursor:pointer;transition:all .25s;background:rgba(255,255,255,.02);margin-bottom:16px;position:relative"
+        onclick="document.getElementById('sm-file-input').click()"
+        ondragover="event.preventDefault();this.style.borderColor='rgba(255,255,255,.25)';this.style.background='rgba(255,255,255,.04)'"
+        ondragleave="this.style.borderColor='rgba(255,255,255,.1)';this.style.background='rgba(255,255,255,.02)'"
+        ondrop="smHandleDrop(event)">
+        <div style="font-size:36px;margin-bottom:14px;opacity:.3">📁</div>
+        <div style="font-size:14px;color:var(--text3);margin-bottom:6px">이미지를 드래그하거나 클릭해서 업로드</div>
+        <div style="font-size:11px;color:#333">JPG · PNG · WEBP · 최대 20MB</div>
+        <input type="file" id="sm-file-input" accept="image/*" style="display:none" onchange="smHandleFile(this.files[0])"/>
+      </div>
+
+      <!-- PREVIEW -->
+      <div id="sm-preview-wrap" style="display:none;border:1px solid var(--border);border-radius:14px;overflow:hidden;position:relative;margin-bottom:16px">
+        <img id="sm-preview-img" src="" style="width:100%;max-height:280px;object-fit:cover;display:block"/>
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.75),transparent 50%);display:flex;align-items:flex-end;padding:16px" id="sm-preview-overlay">
+          <span id="sm-filename" style="font-size:11px;color:rgba(255,255,255,.45)"></span>
+          <button onclick="smReset()" style="margin-left:auto;font-size:11px;color:var(--white);border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.4);padding:5px 14px;border-radius:8px;cursor:pointer;font-family:inherit;backdrop-filter:blur(4px)">변경</button>
+        </div>
+      </div>
+
+      <!-- DETECT BADGE -->
+      <div id="sm-detect-badge" style="display:none;align-items:center;gap:8px;font-size:12px;padding:10px 16px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);color:var(--text2);margin-bottom:14px">
+        <div style="width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0"></div>
+        <span id="sm-detect-text"></span>
+      </div>
+
+      <!-- STATUS BAR -->
+      <div id="sm-status-bar" style="display:none;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--text3);margin-bottom:14px">
+        <div style="width:7px;height:7px;border-radius:50%;background:var(--white);flex-shrink:0;animation:smPulse 1.2s infinite"></div>
+        <span id="sm-status-text">처리 중...</span>
+        <span id="sm-method-badge" style="margin-left:auto;font-size:10px;padding:2px 8px;border-radius:4px;background:rgba(255,255,255,.07);border:1px solid var(--border);display:none"></span>
+      </div>
+
+      <!-- RUN BUTTON -->
+      <button id="sm-run-btn" onclick="smProcess()"
+        style="width:100%;height:56px;background:var(--white);color:var(--bg);border:none;border-radius:14px;font-family:inherit;font-size:16px;font-weight:700;letter-spacing:.08em;cursor:pointer;transition:all .2s;margin-bottom:24px"
+        onmouseover="this.style.opacity='.88';this.style.transform='translateY(-1px)'"
+        onmouseout="this.style.opacity='1';this.style.transform='none'">
+        SEAMLESS 변환
+      </button>
+
+      <!-- RESULTS -->
+      <div id="sm-results" style="display:none;flex-direction:column;gap:14px">
+
+        <!-- before / after -->
+        <div style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">변환 결과</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--surface2);position:relative">
+            <canvas id="sm-orig-canvas" style="width:100%;display:block"></canvas>
+            <div style="position:absolute;top:8px;left:8px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;background:rgba(0,0,0,.65);color:rgba(255,255,255,.45);padding:3px 8px;border-radius:4px">원본</div>
+          </div>
+          <div style="border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--surface2);position:relative">
+            <canvas id="sm-result-canvas" style="width:100%;display:block"></canvas>
+            <div style="position:absolute;top:8px;left:8px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;background:rgba(0,0,0,.65);color:rgba(255,255,255,.75);padding:3px 8px;border-radius:4px">심리스 ✓</div>
+          </div>
+        </div>
+
+        <!-- tiled -->
+        <div style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">타일링 미리보기 (4×4)</div>
+        <div style="border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--surface2)">
+          <canvas id="sm-tiled-canvas" style="width:100%;display:block"></canvas>
+        </div>
+
+        <!-- upscale result -->
+        <div id="sm-upscale-section" style="display:none">
+          <div style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px">
+            4× 업스케일 <span style="text-transform:none;letter-spacing:0;font-size:11px;color:#444">Real-ESRGAN</span>
+          </div>
+          <div style="border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--surface2)">
+            <img id="sm-upscale-img" src="" style="width:100%;display:block"/>
+          </div>
+        </div>
+
+        <!-- download btns -->
+        <div id="sm-dl-wrap" style="display:none;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
+          <button onclick="smDownloadSeamless()"
+            style="height:48px;background:transparent;border:1.5px solid rgba(255,255,255,.15);border-radius:12px;color:var(--text2);font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:7px"
+            onmouseover="this.style.borderColor='rgba(255,255,255,.3)';this.style.color='var(--white)'"
+            onmouseout="this.style.borderColor='rgba(255,255,255,.15)';this.style.color='var(--text2)'">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2V10M8 10L5 7M8 10L11 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            심리스 다운로드
+          </button>
+          <button id="sm-dl-upscale-btn" onclick="smDownloadUpscale()"
+            style="display:none;height:48px;background:transparent;border:1.5px solid rgba(255,255,255,.15);border-radius:12px;color:var(--text2);font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;align-items:center;justify-content:center;gap:7px"
+            onmouseover="this.style.borderColor='rgba(255,255,255,.3)';this.style.color='var(--white)'"
+            onmouseout="this.style.borderColor='rgba(255,255,255,.15)';this.style.color='var(--text2)'">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2V10M8 10L5 7M8 10L11 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            4× 업스케일 다운로드
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div><!-- /page-seamless -->
+</div><!-- /main -->
+
+<style>
+@keyframes smPulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+#sm-preview-wrap:hover #sm-preview-overlay { opacity: 1 !important; }
+</style>
+
+<script>
+/* ═══════════════════════════ PAGE ROUTING ═══════════════════════════ */
+function showPage(id) {
+  const home = document.getElementById('page-home');
+  const seamless = document.getElementById('page-seamless');
+  if (!home || !seamless) return;
+  home.style.display = id === 'home' ? 'flex' : 'none';
+  seamless.style.display = id === 'seamless' ? 'flex' : 'none';
+
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.page === id);
+  });
+}
+
+// nav-item에 data-page 속성 추가 (onclick 교체)
+document.querySelectorAll('.nav-item').forEach(el => {
+  const oc = el.getAttribute('onclick') || '';
+  if (oc.includes('home')) el.dataset.page = 'home';
+  else if (oc.includes('seamless') || el.textContent.includes('Seamless')) el.dataset.page = 'seamless';
+});
+
+// Seamless 카드 클릭 → 페이지 전환
+document.querySelector('.tool-card.t1').style.cursor = 'pointer';
+document.querySelector('.tool-card.t1').addEventListener('click', () => showPage('seamless'));
+
+// 사이드바 Seamless 메뉴
+document.querySelectorAll('.nav-item').forEach(el => {
+  if (el.textContent.includes('Seamless')) {
+    el.onclick = () => showPage('seamless');
+  }
+  if (el.textContent.includes('홈')) {
+    el.onclick = () => showPage('home');
+  }
+});
+
+/* ═══════════════════════════ VIDEO HOVER ═══════════════════════════ */
+document.querySelectorAll('.tool-card').forEach(card => {
+  const video = card.querySelector('.tool-video');
+  if (!video) return;
+  card.addEventListener('mouseenter', () => {
+    if (!video.src || video.src === window.location.href) {
+      const ds = video.getAttribute('data-src');
+      if (ds) video.src = ds;
+    }
+    const p = video.play();
+    if (p) p.then(() => video.classList.add('playing')).catch(() => {});
+  });
+  card.addEventListener('mouseleave', () => {
+    video.pause(); video.currentTime = 0; video.classList.remove('playing');
+  });
+});
+
+/* ═══════════════════════════ FFT UTILS ═══════════════════════════ */
+function fft1d(re, im) {
+  const n = re.length; if (n <= 1) return;
+  if (n & (n-1)) { dftSlow(re, im); return; }
+  const eR=new Float64Array(n/2),eI=new Float64Array(n/2),oR=new Float64Array(n/2),oI=new Float64Array(n/2);
+  for(let i=0;i<n/2;i++){eR[i]=re[2*i];eI[i]=im[2*i];oR[i]=re[2*i+1];oI[i]=im[2*i+1];}
+  fft1d(eR,eI);fft1d(oR,oI);
+  for(let k=0;k<n/2;k++){const a=-2*Math.PI*k/n,wr=Math.cos(a),wi=Math.sin(a),tr=wr*oR[k]-wi*oI[k],ti=wr*oI[k]+wi*oR[k];re[k]=eR[k]+tr;im[k]=eI[k]+ti;re[k+n/2]=eR[k]-tr;im[k+n/2]=eI[k]-ti;}
+}
+function dftSlow(re,im){const n=re.length,r2=new Float64Array(n),i2=new Float64Array(n);for(let k=0;k<n;k++)for(let t=0;t<n;t++){const a=-2*Math.PI*k*t/n;r2[k]+=re[t]*Math.cos(a)-im[t]*Math.sin(a);i2[k]+=re[t]*Math.sin(a)+im[t]*Math.cos(a);}re.set(r2);im.set(i2);}
+function ifft1d(re,im){for(let i=0;i<im.length;i++)im[i]=-im[i];fft1d(re,im);const n=re.length;for(let i=0;i<n;i++){re[i]/=n;im[i]=-im[i]/n;}}
+function fft2d(re,im,R,C){const rr=new Float64Array(C),ri=new Float64Array(C);for(let r=0;r<R;r++){for(let c=0;c<C;c++){rr[c]=re[r*C+c];ri[c]=im[r*C+c];}fft1d(rr,ri);for(let c=0;c<C;c++){re[r*C+c]=rr[c];im[r*C+c]=ri[c];}}const cr=new Float64Array(R),ci=new Float64Array(R);for(let c=0;c<C;c++){for(let r=0;r<R;r++){cr[r]=re[r*C+c];ci[r]=im[r*C+c];}fft1d(cr,ci);for(let r=0;r<R;r++){re[r*C+c]=cr[r];im[r*C+c]=ci[r];}}}
+function ifft2d(re,im,R,C){for(let i=0;i<re.length;i++)im[i]=-im[i];fft2d(re,im,R,C);const N=R*C;for(let i=0;i<re.length;i++){re[i]/=N;im[i]=-im[i]/N;}}
+function fftshift2d(a,R,C){const o=new Float64Array(a.length),hr=Math.floor(R/2),hc=Math.floor(C/2);for(let r=0;r<R;r++)for(let c=0;c<C;c++)o[((r+hr)%R)*C+(c+hc)%C]=a[r*C+c];return o;}
+function ifftshift2d(a,R,C){const o=new Float64Array(a.length),hr=Math.ceil(R/2),hc=Math.ceil(C/2);for(let r=0;r<R;r++)for(let c=0;c<C;c++)o[((r+hr)%R)*C+(c+hc)%C]=a[r*C+c];return o;}
+
+function makeSeamlessFFT(pixels,w,h){
+  const result=new Float64Array(w*h*3);
+  for(let ch=0;ch<3;ch++){
+    const channel=new Float64Array(w*h);
+    for(let i=0;i<w*h;i++)channel[i]=pixels[i*4+ch];
+    let oMin=Infinity,oMax=-Infinity;
+    for(const v of channel){if(v<oMin)oMin=v;if(v>oMax)oMax=v;}
+    const re=Float64Array.from(channel),im=new Float64Array(w*h);
+    fft2d(re,im,h,w);
+    let reS=fftshift2d(re,h,w),imS=fftshift2d(im,h,w);
+    const sigma=Math.min(h,w)*0.35,crow=Math.floor(h/2),ccol=Math.floor(w/2);
+    for(let r=0;r<h;r++)for(let c=0;c<w;c++){const dy=r-crow,dx=c-ccol,g=Math.exp(-(dy*dy+dx*dx)/(2*sigma*sigma));reS[r*w+c]*=g;imS[r*w+c]*=g;}
+    const reIS=ifftshift2d(reS,h,w),imIS=ifftshift2d(imS,h,w);
+    ifft2d(reIS,imIS,h,w);
+    let bMin=Infinity,bMax=-Infinity;
+    for(const v of reIS){if(v<bMin)bMin=v;if(v>bMax)bMax=v;}
+    const cb=new Float64Array(reIS.length);
+    if(bMax>bMin)for(let i=0;i<reIS.length;i++)cb[i]=(reIS[i]-bMin)/(bMax-bMin)*(oMax-oMin)+oMin;
+    else cb.set(reIS);
+    const blend=0.15,bx=Math.floor(w*blend),by=Math.floor(h*blend);
+    for(let i=0;i<bx;i++){const a=i/bx;for(let r=0;r<h;r++){const l=cb[r*w+i],rr=cb[r*w+(w-1-i)];cb[r*w+i]=l*a+rr*(1-a);cb[r*w+(w-1-i)]=rr*a+l*(1-a);}}
+    for(let j=0;j<by;j++){const a=j/by;for(let c=0;c<w;c++){const t=cb[j*w+c],b=cb[(h-1-j)*w+c];cb[j*w+c]=t*a+b*(1-a);cb[(h-1-j)*w+c]=b*a+t*(1-a);}}
+    for(let i=0;i<w*h;i++)result[i*3+ch]=cb[i];
+  }
+  return result;
+}
+
+/* ═══════════════════════════ PERF DETECT ═══════════════════════════ */
+function scan1D(data,offset,len){const c=[];let inH=false,s=0;for(let i=0;i<len;i++){const v=data[offset+i];if(v&&!inH){inH=true;s=i;}else if(!v&&inH){inH=false;c.push((s+i)/2);}}return c;}
+function medVal(arr){if(!arr.length)return 0;return [...arr].sort((a,b)=>a-b)[Math.floor(arr.length/2)];}
+function mkCanvas(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c;}
+
+function detectPerforated(img){
+  const MAX=1000,sc=Math.min(MAX/img.width,MAX/img.height,1);
+  const w=Math.floor(img.width*sc),h=Math.floor(img.height*sc);
+  const tmp=mkCanvas(w,h);tmp.getContext('2d').drawImage(img,0,0,w,h);
+  const px=tmp.getContext('2d').getImageData(0,0,w,h).data;
+  let minV=255,maxV=0;const gray=new Float32Array(w*h);
+  for(let i=0;i<w*h;i++){const v=(px[i*4]+px[i*4+1]+px[i*4+2])/3;gray[i]=v;if(v<minV)minV=v;if(v>maxV)maxV=v;}
+  const thresh=minV+(maxV-minV)*0.18,bin=new Uint8Array(w*h);
+  for(let i=0;i<w*h;i++)bin[i]=gray[i]<thresh?1:0;
+  let bestCX=[],bestPX=0;
+  for(const row of[.2,.35,.5,.65,.8].map(r=>Math.floor(h*r))){const cx=scan1D(bin,row*w,w);if(cx.length>bestCX.length){bestCX=cx;bestPX=cx.length>1?medVal(cx.slice(1).map((v,i)=>v-cx[i])):0;}}
+  let bestCY=[],bestPY=0;
+  for(const col of[.2,.35,.5,.65,.8].map(c=>Math.floor(w*c))){const cb=new Uint8Array(h);for(let j=0;j<h;j++)cb[j]=bin[j*w+col];const cy=scan1D(cb,0,h);if(cy.length>bestCY.length){bestCY=cy;bestPY=cy.length>1?medVal(cy.slice(1).map((v,i)=>v-cy[i])):0;}}
+  const isPerf=bestCX.length>=4&&bestCY.length>=4&&bestPX>=4&&bestPY>=4;
+  if(!isPerf)return{isPerf:false};
+  const sx=Math.max(0,Math.round(bestCX[0]-bestPX/2)),sy=Math.max(0,Math.round(bestCY[0]-bestPY/2));
+  const nX=Math.floor((w-sx)/bestPX),nY=Math.floor((h-sy)/bestPY);
+  if(nX<1||nY<1)return{isPerf:false};
+  const cw=Math.round(bestPX*nX),ch=Math.round(bestPY*nY),ex=Math.min(sx+cw,w),ey=Math.min(sy+ch,h);
+  const crop=mkCanvas(ex-sx,ey-sy);crop.getContext('2d').drawImage(tmp,sx,sy,crop.width,crop.height,0,0,crop.width,crop.height);
+  return{isPerf:true,canvas:crop,pX:bestPX,pY:bestPY};
+}
+
+/* ═══════════════════════════ SM STATE ═══════════════════════════ */
+let smFile=null, smPreviewURL=null, smResultDataURL=null, smUpscaleURL=null;
+
+function smUpdateApiStatus(){
+  const k=document.getElementById('sm-api-key').value.trim();
+  const b=document.getElementById('sm-api-badge');
+  const on=k.startsWith('r8_')&&k.length>10;
+  b.textContent=on?'업스케일 ON':'업스케일 OFF';
+  b.style.color=on?'var(--text2)':'var(--text3)';
+  b.style.borderColor=on?'rgba(255,255,255,.2)':'var(--border)';
+}
+
+function smHandleFile(file){
+  if(!file||!file.type.startsWith('image/'))return;
+  smFile=file; smResultDataURL=null; smUpscaleURL=null;
+  smPreviewURL=URL.createObjectURL(file);
+  document.getElementById('sm-upload-zone').style.display='none';
+  document.getElementById('sm-preview-wrap').style.display='block';
+  document.getElementById('sm-preview-img').src=smPreviewURL;
+  document.getElementById('sm-filename').textContent=file.name;
+  document.getElementById('sm-results').style.display='none';
+  document.getElementById('sm-dl-wrap').style.display='none';
+  document.getElementById('sm-detect-badge').style.display='none';
+}
+
+function smHandleDrop(e){
+  e.preventDefault();
+  e.currentTarget.style.borderColor='rgba(255,255,255,.1)';
+  e.currentTarget.style.background='rgba(255,255,255,.02)';
+  const f=e.dataTransfer.files[0];if(f)smHandleFile(f);
+}
+
+function smReset(){
+  smFile=null;smPreviewURL=null;smResultDataURL=null;smUpscaleURL=null;
+  document.getElementById('sm-upload-zone').style.display='block';
+  document.getElementById('sm-preview-wrap').style.display='none';
+  document.getElementById('sm-results').style.display='none';
+  document.getElementById('sm-dl-wrap').style.display='none';
+  document.getElementById('sm-detect-badge').style.display='none';
+  document.getElementById('sm-status-bar').style.display='none';
+  document.getElementById('sm-file-input').value='';
+}
+
+function smSetStatus(text,show=true){
+  const bar=document.getElementById('sm-status-bar');
+  bar.style.display=show?'flex':'none';
+  document.getElementById('sm-status-text').textContent=text;
+}
+
+function smProcess(){
+  if(!smPreviewURL)return;
+  const btn=document.getElementById('sm-run-btn');
+  btn.disabled=true;btn.style.opacity='.35';btn.textContent='처리 중...';
+  smResultDataURL=null;smUpscaleURL=null;
+  document.getElementById('sm-results').style.display='none';
+  document.getElementById('sm-dl-wrap').style.display='none';
+  document.getElementById('sm-upscale-section').style.display='none';
+  document.getElementById('sm-dl-upscale-btn').style.display='none';
+  smSetStatus('패턴 감지 중...');
+
+  const img=new Image();
+  img.onload=()=>{
+    // 원본 캔버스
+    const oc=document.getElementById('sm-orig-canvas');
+    const sc=Math.min(460/img.width,460/img.height,1);
+    oc.width=Math.floor(img.width*sc);oc.height=Math.floor(img.height*sc);
+    oc.getContext('2d').drawImage(img,0,0,oc.width,oc.height);
+
+    setTimeout(()=>{
+      const perf=detectPerforated(img);
+      const db=document.getElementById('sm-detect-badge');
+      const mb=document.getElementById('sm-method-badge');
+      db.style.display='flex';mb.style.display='block';
+      if(perf.isPerf){
+        document.getElementById('sm-detect-text').textContent=`⚫ 타공 패턴 감지 — 간격 X=${perf.pX.toFixed(1)} Y=${perf.pY.toFixed(1)}px`;
+        mb.textContent='타공 간격 정렬';
+        smSetStatus('타공 패턴 처리 중...');
+        setTimeout(()=>smFinalize(perf.canvas,btn),100);
+      }else{
+        document.getElementById('sm-detect-text').textContent='🪵 일반 텍스처 — FFT 가우시안 방식';
+        mb.textContent='FFT 가우시안';
+        smSetStatus('FFT 주파수 변환 중...');
+        setTimeout(()=>smRunFFT(img,btn),30);
+      }
+    },30);
+  };
+  img.src=smPreviewURL;
+}
+
+function smRunFFT(img,btn){
+  const MAX=256,sc=Math.min(MAX/img.width,MAX/img.height,1);
+  const w=Math.floor(img.width*sc),h=Math.floor(img.height*sc);
+  const tmp=mkCanvas(w,h);tmp.getContext('2d').drawImage(img,0,0,w,h);
+  const pixels=tmp.getContext('2d').getImageData(0,0,w,h).data;
+  smSetStatus(`FFT 처리 중... (${w}×${h}px)`);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const rgb=makeSeamlessFFT(pixels,w,h);
+    const out=mkCanvas(w,h),octx=out.getContext('2d'),od=octx.createImageData(w,h);
+    for(let i=0;i<w*h;i++){od.data[i*4]=Math.max(0,Math.min(255,Math.round(rgb[i*3])));od.data[i*4+1]=Math.max(0,Math.min(255,Math.round(rgb[i*3+1])));od.data[i*4+2]=Math.max(0,Math.min(255,Math.round(rgb[i*3+2])));od.data[i*4+3]=255;}
+    octx.putImageData(od,0,0);
+    smFinalize(out,btn);
+  }));
+}
+
+function smFinalize(canvas,btn){
+  smSetStatus('완료!',false);
+  const rc=document.getElementById('sm-result-canvas');
+  rc.width=canvas.width;rc.height=canvas.height;rc.getContext('2d').drawImage(canvas,0,0);
+  const tc=document.getElementById('sm-tiled-canvas');
+  tc.width=canvas.width*4;tc.height=canvas.height*4;
+  const tCtx=tc.getContext('2d');
+  for(let x=0;x<4;x++)for(let y=0;y<4;y++)tCtx.drawImage(canvas,x*canvas.width,y*canvas.height);
+  smResultDataURL=canvas.toDataURL('image/png');
+  document.getElementById('sm-results').style.display='flex';
+  document.getElementById('sm-dl-wrap').style.display='grid';
+  btn.disabled=false;btn.style.opacity='1';btn.textContent='SEAMLESS 변환';
+
+  const key=document.getElementById('sm-api-key').value.trim();
+  if(key.startsWith('r8_')&&key.length>10)setTimeout(()=>smRunUpscale(smResultDataURL,key),400);
+}
+
+async function smRunUpscale(dataURL,key){
+  smSetStatus('Real-ESRGAN 4× 업스케일 중...',true);
+  try{
+    const PROXY = 'https://corsproxy.io/?';
+    const cr=await fetch(PROXY+'https://api.replicate.com/v1/predictions',{
+      method:'POST',
+      headers:{'Authorization':`Bearer ${key}`,'Content-Type':'application/json','x-requested-with':'XMLHttpRequest'},
+      body:JSON.stringify({version:'42fed1c4974146d4d2414e2be2c5277c7fcf05fcc3a73abf41610695738c1d7b',input:{image:dataURL,scale:4,face_enhance:false}})
+    });
+    if(!cr.ok)throw new Error(`API ${cr.status}`);
+    const pred=await cr.json();
+    for(let i=0;i<60;i++){
+      await new Promise(r=>setTimeout(r,2000));
+      const pr=await fetch(PROXY+`https://api.replicate.com/v1/predictions/${pred.id}`,{headers:{'Authorization':`Bearer ${key}`,'x-requested-with':'XMLHttpRequest'}});
+      const pd=await pr.json();
+      if(pd.status==='succeeded'){
+        smUpscaleURL=pd.output;
+        document.getElementById('sm-upscale-img').src=pd.output;
+        document.getElementById('sm-upscale-section').style.display='block';
+        document.getElementById('sm-dl-upscale-btn').style.display='flex';
+        smSetStatus('업스케일 완료!',false);
+        return;
+      }
+      if(pd.status==='failed')throw new Error(pd.error);
+    }
+    throw new Error('타임아웃');
+  }catch(e){smSetStatus('업스케일 오류: '+e.message,true);}
+}
+
+function smDownloadSeamless(){
+  if(!smResultDataURL)return;
+  const a=document.createElement('a');a.href=smResultDataURL;a.download='skiph_seamless_'+Date.now()+'.png';a.click();
+}
+
+async function smDownloadUpscale(){
+  if(!smUpscaleURL)return;
+  try{const r=await fetch(smUpscaleURL);const blob=await r.blob();const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='skiph_4x_'+Date.now()+'.png';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(url),2000);}
+  catch{window.open(smUpscaleURL,'_blank');}
+}
+
+// 초기 홈 표시
+showPage('home');
+</script>
 </body>
 </html>
