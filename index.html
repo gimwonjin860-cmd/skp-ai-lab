@@ -934,121 +934,136 @@ body {
     <span style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border);color:var(--text3)">◆ 2 토큰 / 회</span>
   </div>
 
-  <!-- content -->
-  <div style="flex:1;overflow-y:auto;padding:36px 40px 60px">
-    <div>
+  <!-- 2-col no-scroll layout -->
+  <div style="flex:1;overflow:hidden;display:flex;gap:0;min-height:0">
 
-      <!-- title -->
-      <div style="margin-bottom:32px">
-        <h1 style="font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:6px">Seamless Texture</h1>
-        <p style="font-size:13px;color:var(--text3);font-weight:300">소재 이미지 업로드 → 타공 / 일반 자동 감지 → 심리스 변환 → 4× 업스케일</p>
+    <!-- LEFT COL: 280px fixed -->
+    <div id="sm-left-col" style="width:280px;flex-shrink:0;display:flex;flex-direction:column;gap:10px;padding:20px 20px 20px 28px;overflow-y:auto;border-right:1px solid var(--border)">
+
+      <div>
+        <h1 style="font-size:17px;font-weight:600;letter-spacing:-.02em;margin-bottom:3px">Seamless Texture</h1>
+        <p style="font-size:11px;color:var(--text3);font-weight:300;line-height:1.5">타공/일반 자동 감지 → 심리스 변환</p>
       </div>
 
       <!-- API KEY -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
-        <span style="font-size:11px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap">Replicate Key</span>
-        <input type="password" id="sm-api-key" placeholder="r8_xxxx... (없으면 업스케일 스킵)" oninput="smUpdateApiStatus()"
-          style="flex:1;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-family:inherit;font-size:12px;outline:none;transition:border-color .2s"
-          onfocus="this.style.borderColor='rgba(255,255,255,.2)'" onblur="this.style.borderColor='var(--border)'"/>
-        <span id="sm-api-badge" style="font-size:10px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);color:var(--text3);white-space:nowrap;background:rgba(255,255,255,.04)">업스케일 OFF</span>
-      </div>
-
-      <!-- UPLOAD ZONE -->
-      <div id="sm-upload-zone"
-        style="border:1.5px dashed rgba(255,255,255,.1);border-radius:16px;padding:52px 40px;text-align:center;cursor:pointer;transition:all .25s;background:rgba(255,255,255,.02);margin-bottom:16px;position:relative"
-        onclick="document.getElementById('sm-file-input').click()"
-        ondragover="event.preventDefault();this.style.borderColor='rgba(255,255,255,.25)';this.style.background='rgba(255,255,255,.04)'"
-        ondragleave="this.style.borderColor='rgba(255,255,255,.1)';this.style.background='rgba(255,255,255,.02)'"
-        ondrop="smHandleDrop(event)">
-        <div style="font-size:36px;margin-bottom:14px;opacity:.3">📁</div>
-        <div style="font-size:14px;color:var(--text3);margin-bottom:6px">이미지를 드래그하거나 클릭해서 업로드</div>
-        <div style="font-size:11px;color:#333">JPG · PNG · WEBP · 최대 20MB</div>
-        <input type="file" id="sm-file-input" accept="image/*" style="display:none" onchange="smHandleFile(this.files[0])"/>
-      </div>
-
-      <!-- PREVIEW -->
-      <div id="sm-preview-wrap" style="display:none;border:1px solid var(--border);border-radius:14px;overflow:hidden;position:relative;margin-bottom:16px">
-        <img id="sm-preview-img" src="" style="width:100%;max-height:280px;object-fit:cover;display:block"/>
-        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.75),transparent 50%);display:flex;align-items:flex-end;padding:16px" id="sm-preview-overlay">
-          <span id="sm-filename" style="font-size:11px;color:rgba(255,255,255,.45)"></span>
-          <button onclick="smReset()" style="margin-left:auto;font-size:11px;color:var(--white);border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.4);padding:5px 14px;border-radius:8px;cursor:pointer;font-family:inherit;backdrop-filter:blur(4px)">변경</button>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:10px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">Replicate Key</span>
+          <span id="sm-api-badge" style="margin-left:auto;font-size:10px;padding:2px 8px;border-radius:6px;border:1px solid var(--border);color:var(--text3);background:rgba(255,255,255,.04)">AI OFF</span>
         </div>
+        <input type="password" id="sm-api-key" placeholder="r8_xxxx..." oninput="smUpdateApiStatus()"
+          style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font-family:inherit;font-size:11px;outline:none;box-sizing:border-box"
+          onfocus="this.style.borderColor='rgba(255,255,255,.2)'" onblur="this.style.borderColor='var(--border)'"/>
       </div>
 
       <!-- DETECT BADGE -->
-      <div id="sm-detect-badge" style="display:none;align-items:center;gap:8px;font-size:12px;padding:10px 16px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);color:var(--text2);margin-bottom:14px">
-        <div style="width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0"></div>
+      <div id="sm-detect-badge" style="display:none;align-items:center;gap:8px;font-size:11px;padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);color:var(--text2)">
+        <div style="width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0"></div>
         <span id="sm-detect-text"></span>
       </div>
 
       <!-- STATUS BAR -->
-      <div id="sm-status-bar" style="display:none;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--text3);margin-bottom:14px">
-        <div style="width:7px;height:7px;border-radius:50%;background:var(--white);flex-shrink:0;animation:smPulse 1.2s infinite"></div>
+      <div id="sm-status-bar" style="display:none;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:11px;color:var(--text3)">
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--white);flex-shrink:0;animation:smPulse 1.2s infinite"></div>
         <span id="sm-status-text">처리 중...</span>
-        <span id="sm-method-badge" style="margin-left:auto;font-size:10px;padding:2px 8px;border-radius:4px;background:rgba(255,255,255,.07);border:1px solid var(--border);display:none"></span>
+        <span id="sm-method-badge" style="margin-left:auto;font-size:10px;padding:2px 7px;border-radius:4px;background:rgba(255,255,255,.07);border:1px solid var(--border);display:none"></span>
       </div>
 
       <!-- RUN BUTTON -->
       <button id="sm-run-btn" onclick="smProcess()"
-        style="width:100%;height:56px;background:var(--white);color:var(--bg);border:none;border-radius:14px;font-family:inherit;font-size:16px;font-weight:700;letter-spacing:.08em;cursor:pointer;transition:all .2s;margin-bottom:24px"
+        style="width:100%;height:50px;background:var(--white);color:var(--bg);border:none;border-radius:14px;font-family:inherit;font-size:14px;font-weight:700;letter-spacing:.08em;cursor:pointer;transition:all .2s"
         onmouseover="this.style.opacity='.88';this.style.transform='translateY(-1px)'"
         onmouseout="this.style.opacity='1';this.style.transform='none'">
         SEAMLESS 변환
       </button>
 
-      <!-- RESULTS -->
-      <div id="sm-results" style="display:none;flex-direction:column;gap:14px">
-
-        <!-- before / after -->
-        <div style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">변환 결과</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div style="border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--surface2);position:relative">
-            <canvas id="sm-orig-canvas" style="width:100%;display:block"></canvas>
-            <div style="position:absolute;top:8px;left:8px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;background:rgba(0,0,0,.65);color:rgba(255,255,255,.45);padding:3px 8px;border-radius:4px">원본</div>
-          </div>
-          <div style="border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--surface2);position:relative">
-            <canvas id="sm-result-canvas" style="width:100%;display:block"></canvas>
-            <div style="position:absolute;top:8px;left:8px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;background:rgba(0,0,0,.65);color:rgba(255,255,255,.75);padding:3px 8px;border-radius:4px">심리스 ✓</div>
-          </div>
-        </div>
-
-        <!-- tiled -->
-        <div style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">타일링 미리보기 (4×4)</div>
-        <div style="border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--surface2)">
-          <canvas id="sm-tiled-canvas" style="width:100%;display:block"></canvas>
-        </div>
-
-        <!-- upscale result -->
-        <div id="sm-upscale-section" style="display:none">
-          <div style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px">
-            4× 업스케일 <span style="text-transform:none;letter-spacing:0;font-size:11px;color:#444">Real-ESRGAN</span>
-          </div>
-          <div style="border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--surface2)">
-            <img id="sm-upscale-img" src="" style="width:100%;display:block"/>
-          </div>
-        </div>
-
-        <!-- download btns -->
-        <div id="sm-dl-wrap" style="display:none;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
-          <button onclick="smDownloadSeamless()"
-            style="height:48px;background:transparent;border:1.5px solid rgba(255,255,255,.15);border-radius:12px;color:var(--text2);font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:7px"
-            onmouseover="this.style.borderColor='rgba(255,255,255,.3)';this.style.color='var(--white)'"
-            onmouseout="this.style.borderColor='rgba(255,255,255,.15)';this.style.color='var(--text2)'">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2V10M8 10L5 7M8 10L11 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-            심리스 다운로드
-          </button>
-          <button id="sm-dl-upscale-btn" onclick="smDownloadUpscale()"
-            style="display:none;height:48px;background:transparent;border:1.5px solid rgba(255,255,255,.15);border-radius:12px;color:var(--text2);font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;align-items:center;justify-content:center;gap:7px"
-            onmouseover="this.style.borderColor='rgba(255,255,255,.3)';this.style.color='var(--white)'"
-            onmouseout="this.style.borderColor='rgba(255,255,255,.15)';this.style.color='var(--text2)'">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2V10M8 10L5 7M8 10L11 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-            4× 업스케일 다운로드
-          </button>
-        </div>
-
+      <!-- DOWNLOAD BTNS -->
+      <div id="sm-dl-wrap" style="display:none;grid-template-columns:1fr 1fr;gap:8px">
+        <button onclick="smDownloadSeamless()"
+          style="height:42px;background:transparent;border:1.5px solid rgba(255,255,255,.15);border-radius:10px;color:var(--text2);font-family:inherit;font-size:11px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:5px"
+          onmouseover="this.style.borderColor='rgba(255,255,255,.3)';this.style.color='var(--white)'"
+          onmouseout="this.style.borderColor='rgba(255,255,255,.15)';this.style.color='var(--text2)'">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M8 2V10M8 10L5 7M8 10L11 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          심리스
+        </button>
       </div>
-    </div>
-  </div>
+
+    </div><!-- /left col -->
+
+    <!-- RIGHT COL -->
+    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0">
+
+      <!-- TAB BAR (shows after conversion) -->
+      <div id="sm-tab-bar" style="display:none;flex-shrink:0;display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 20px">
+        <button class="sm-tab active" data-tab="compare" onclick="smSwitchTab('compare')"
+          style="padding:10px 16px;font-size:11px;font-family:inherit;background:transparent;border:none;border-bottom:2px solid white;color:var(--white);cursor:pointer;letter-spacing:.04em">비교</button>
+        <button class="sm-tab" data-tab="tiled" onclick="smSwitchTab('tiled')"
+          style="padding:10px 16px;font-size:11px;font-family:inherit;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text3);cursor:pointer;letter-spacing:.04em">타일링 4×4</button>
+      </div>
+
+      <!-- UPLOAD ZONE (before image selected) -->
+      <div id="sm-upload-zone"
+        style="flex:1;border:1.5px dashed rgba(255,255,255,.1);margin:20px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .25s;background:rgba(255,255,255,.02)"
+        onclick="document.getElementById('sm-file-input').click()"
+        ondragover="event.preventDefault();this.style.borderColor='rgba(255,255,255,.25)';this.style.background='rgba(255,255,255,.04)'"
+        ondragleave="this.style.borderColor='rgba(255,255,255,.1)';this.style.background='rgba(255,255,255,.02)'"
+        ondrop="smHandleDrop(event)">
+        <div class="sm-upload-text" style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div style="font-size:40px;opacity:.25">📁</div>
+          <div style="font-size:14px;color:var(--text3)">이미지를 드래그하거나 클릭해서 업로드</div>
+          <div style="font-size:11px;color:#333">JPG · PNG · WEBP · 최대 20MB</div>
+        </div>
+        <input type="file" id="sm-file-input" accept="image/*" style="display:none" onchange="smHandleFile(this.files[0])"/>
+      </div>
+
+      <!-- COMPARE VIEW (before/after slider) -->
+      <div id="sm-compare-wrap" style="display:none;flex:1;padding:16px 20px;overflow:hidden;min-height:0">
+        <div style="position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:#111;user-select:none;height:100%;display:flex;align-items:center;justify-content:center" id="sm-compare-box">
+          <!-- 원본 이미지 -->
+          <img id="sm-orig-img" style="display:block;max-width:100%;max-height:100%;object-fit:contain;pointer-events:none;user-select:none" src="" draggable="false"/>
+          <!-- 심리스 이미지 (클립으로 오른쪽에서 밀기) -->
+          <div id="sm-result-clip" style="position:absolute;inset:0;overflow:hidden;clip-path:inset(0 50% 0 0)">
+            <img id="sm-result-img" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none" src="" draggable="false"/>
+          </div>
+          <!-- 슬라이더 라인 -->
+          <div id="sm-slider-line" style="position:absolute;top:0;bottom:0;left:50%;width:2px;background:rgba(255,255,255,.9);z-index:10;transform:translateX(-50%);pointer-events:none">
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:36px;height:36px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 14px rgba(0,0,0,.7);cursor:ew-resize;pointer-events:all">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 8H1M11 8H15M5 5L1 8L5 11M11 5L15 8L11 11" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          <!-- 레이블 -->
+          <div style="position:absolute;top:0;left:0;right:50%;bottom:0;display:flex;align-items:flex-end;justify-content:flex-start;padding:14px 16px;pointer-events:none;z-index:5">
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <span style="font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.35)">BEFORE</span>
+              <span style="font-size:13px;font-weight:500;color:rgba(255,255,255,.55)">원본</span>
+            </div>
+          </div>
+          <div style="position:absolute;top:0;left:50%;right:0;bottom:0;display:flex;align-items:flex-end;justify-content:flex-end;padding:14px 16px;pointer-events:none;z-index:5">
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+              <span style="font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5)">AFTER</span>
+              <span style="font-size:13px;font-weight:600;color:rgba(255,255,255,.9)">심리스 ✓</span>
+            </div>
+          </div>
+          <button onclick="smReset()" style="position:absolute;bottom:12px;right:12px;font-size:11px;color:var(--white);border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.5);padding:5px 14px;border-radius:8px;cursor:pointer;font-family:inherit;z-index:10">변경</button>
+          <div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);font-size:10px;color:rgba(255,255,255,.28);pointer-events:none;z-index:5;white-space:nowrap">← 드래그로 비교 →</div>
+        </div>
+      </div>
+
+      <!-- hidden canvases for processing only -->
+      <canvas id="sm-orig-canvas" style="display:none"></canvas>
+      <canvas id="sm-result-canvas" style="display:none"></canvas>
+
+      <!-- TILED VIEW -->
+      <div id="sm-tiled-wrap" style="display:none;flex:1;padding:16px 20px;overflow:hidden">
+        <div style="border-radius:14px;overflow:hidden;border:1px solid var(--border);background:var(--surface2);height:100%">
+          <canvas id="sm-tiled-canvas" style="width:100%;height:100%;display:block;object-fit:contain"></canvas>
+        </div>
+      </div>
+
+    </div><!-- /right col -->
+
+  </div><!-- /2col -->
+
 </div><!-- /page-seamless -->
 </div><!-- /main -->
 
@@ -1123,32 +1138,66 @@ function ifft2d(re,im,R,C){for(let i=0;i<re.length;i++)im[i]=-im[i];fft2d(re,im,
 function fftshift2d(a,R,C){const o=new Float64Array(a.length),hr=Math.floor(R/2),hc=Math.floor(C/2);for(let r=0;r<R;r++)for(let c=0;c<C;c++)o[((r+hr)%R)*C+(c+hc)%C]=a[r*C+c];return o;}
 function ifftshift2d(a,R,C){const o=new Float64Array(a.length),hr=Math.ceil(R/2),hc=Math.ceil(C/2);for(let r=0;r<R;r++)for(let c=0;c<C;c++)o[((r+hr)%R)*C+(c+hc)%C]=a[r*C+c];return o;}
 
-function makeSeamlessFFT(pixels,w,h){
-  const result=new Float64Array(w*h*3);
-  for(let ch=0;ch<3;ch++){
-    const channel=new Float64Array(w*h);
-    for(let i=0;i<w*h;i++)channel[i]=pixels[i*4+ch];
-    let oMin=Infinity,oMax=-Infinity;
-    for(const v of channel){if(v<oMin)oMin=v;if(v>oMax)oMax=v;}
-    const re=Float64Array.from(channel),im=new Float64Array(w*h);
-    fft2d(re,im,h,w);
-    let reS=fftshift2d(re,h,w),imS=fftshift2d(im,h,w);
-    const sigma=Math.min(h,w)*0.35,crow=Math.floor(h/2),ccol=Math.floor(w/2);
-    for(let r=0;r<h;r++)for(let c=0;c<w;c++){const dy=r-crow,dx=c-ccol,g=Math.exp(-(dy*dy+dx*dx)/(2*sigma*sigma));reS[r*w+c]*=g;imS[r*w+c]*=g;}
-    const reIS=ifftshift2d(reS,h,w),imIS=ifftshift2d(imS,h,w);
-    ifft2d(reIS,imIS,h,w);
-    let bMin=Infinity,bMax=-Infinity;
-    for(const v of reIS){if(v<bMin)bMin=v;if(v>bMax)bMax=v;}
-    const cb=new Float64Array(reIS.length);
-    if(bMax>bMin)for(let i=0;i<reIS.length;i++)cb[i]=(reIS[i]-bMin)/(bMax-bMin)*(oMax-oMin)+oMin;
-    else cb.set(reIS);
-    const blend=0.15,bx=Math.floor(w*blend),by=Math.floor(h*blend);
-    for(let i=0;i<bx;i++){const a=i/bx;for(let r=0;r<h;r++){const l=cb[r*w+i],rr=cb[r*w+(w-1-i)];cb[r*w+i]=l*a+rr*(1-a);cb[r*w+(w-1-i)]=rr*a+l*(1-a);}}
-    for(let j=0;j<by;j++){const a=j/by;for(let c=0;c<w;c++){const t=cb[j*w+c],b=cb[(h-1-j)*w+c];cb[j*w+c]=t*a+b*(1-a);cb[(h-1-j)*w+c]=b*a+t*(1-a);}}
-    for(let i=0;i<w*h;i++)result[i*3+ch]=cb[i];
+function makeSeamlessFFT(pixels, w, h) {
+  // ── Photoshop Offset + Seam Clone 방식 ──
+  // 1) 원본을 (w/2, h/2) wrap 오프셋 → 경계선이 이미지 중앙으로 이동
+  // 2) 오프셋 이미지의 중앙 십자선(경계선) 근방 픽셀을
+  //    오프셋 이미지의 "먼 쪽" (경계선에서 반대편) 픽셀로 대체
+  //    → 경계선 없는 쪽의 픽셀이므로 자연스럽게 이어짐
+  // 3) 나머지 100% 보존
+
+  const hw = Math.floor(w / 2), hh = Math.floor(h / 2);
+  // 패치 반경: 이미지 크기의 8% (더 넓게 해야 경계가 완전히 사라짐)
+  const pR = Math.max(3, Math.floor(Math.min(w, h) * 0.08));
+
+  // Step 1: offset
+  const off = new Uint8ClampedArray(w * h * 4);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const sx = (x + hw) % w, sy = (y + hh) % h;
+      const si = (sy * w + sx) * 4, di = (y * w + x) * 4;
+      off[di]=pixels[si]; off[di+1]=pixels[si+1]; off[di+2]=pixels[si+2]; off[di+3]=255;
+    }
   }
+
+  // Step 2: seam clone
+  // 오프셋 이미지에서 경계선 위치 = x≈hw(세로선), y≈hh(가로선)
+  // clone source: 경계선에서 반대쪽으로 pR*2+샘플offset 떨어진 픽셀
+  const result = new Uint8ClampedArray(off);
+
+  // 세로 경계선 (x=hw) 패치
+  for (let y = 0; y < h; y++) {
+    for (let dx = -pR; dx <= pR; dx++) {
+      const x = (hw + dx + w) % w;
+      const t = smoothstep(Math.abs(dx) / pR); // 경계선 중심에 가까울수록 t→0 (clone 100%)
+      // clone source: 경계선 반대편 (dx 부호 반전, pR+샘플간격)
+      const cloneX = (hw - dx * 3 + w * 4) % w;
+      for (let ch = 0; ch < 3; ch++) {
+        const orig = off[(y * w + x) * 4 + ch];
+        const clone = off[(y * w + cloneX) * 4 + ch];
+        result[(y * w + x) * 4 + ch] = Math.round(orig * t + clone * (1 - t));
+      }
+    }
+  }
+
+  // 가로 경계선 (y=hh) 패치
+  for (let x = 0; x < w; x++) {
+    for (let dy = -pR; dy <= pR; dy++) {
+      const y = (hh + dy + h) % h;
+      const t = smoothstep(Math.abs(dy) / pR);
+      const cloneY = (hh - dy * 3 + h * 4) % h;
+      for (let ch = 0; ch < 3; ch++) {
+        const orig = result[(y * w + x) * 4 + ch];
+        const clone = off[(cloneY * w + x) * 4 + ch];
+        result[(y * w + x) * 4 + ch] = Math.round(orig * t + clone * (1 - t));
+      }
+    }
+  }
+
   return result;
 }
+
+function smoothstep(t) { t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); }
 
 /* ═══════════════════════════ PERF DETECT ═══════════════════════════ */
 function scan1D(data,offset,len){const c=[];let inH=false,s=0;for(let i=0;i<len;i++){const v=data[offset+i];if(v&&!inH){inH=true;s=i;}else if(!v&&inH){inH=false;c.push((s+i)/2);}}return c;}
@@ -1185,7 +1234,7 @@ function smUpdateApiStatus(){
   const k=document.getElementById('sm-api-key').value.trim();
   const b=document.getElementById('sm-api-badge');
   const on=k.startsWith('r8_')&&k.length>10;
-  b.textContent=on?'업스케일 ON':'업스케일 OFF';
+  b.textContent=on?'AI ON':'AI OFF';
   b.style.color=on?'var(--text2)':'var(--text3)';
   b.style.borderColor=on?'rgba(255,255,255,.2)':'var(--border)';
 }
@@ -1194,13 +1243,26 @@ function smHandleFile(file){
   if(!file||!file.type.startsWith('image/'))return;
   smFile=file; smResultDataURL=null; smUpscaleURL=null;
   smPreviewURL=URL.createObjectURL(file);
-  document.getElementById('sm-upload-zone').style.display='none';
-  document.getElementById('sm-preview-wrap').style.display='block';
-  document.getElementById('sm-preview-img').src=smPreviewURL;
-  document.getElementById('sm-filename').textContent=file.name;
-  document.getElementById('sm-results').style.display='none';
+  // 업로드존에 미리보기 표시
+  const uz=document.getElementById('sm-upload-zone');
+  uz.style.backgroundImage='url('+smPreviewURL+')';
+  uz.style.backgroundSize='contain';
+  uz.style.backgroundRepeat='no-repeat';
+  uz.style.backgroundPosition='center';
+  uz.querySelector('.sm-upload-text').style.display='none';
+  // 원본 이미지 캔버스에 저장 (처리용)
+  const img=new Image();
+  img.onload=()=>{
+    const oc=document.getElementById('sm-orig-canvas');
+    oc.width=img.naturalWidth;oc.height=img.naturalHeight;
+    oc.getContext('2d').drawImage(img,0,0);
+  };
+  img.src=smPreviewURL;
   document.getElementById('sm-dl-wrap').style.display='none';
   document.getElementById('sm-detect-badge').style.display='none';
+  document.getElementById('sm-tab-bar').style.display='none';
+  document.getElementById('sm-compare-wrap').style.display='none';
+  document.getElementById('sm-tiled-wrap').style.display='none';
 }
 
 function smHandleDrop(e){
@@ -1212,13 +1274,52 @@ function smHandleDrop(e){
 
 function smReset(){
   smFile=null;smPreviewURL=null;smResultDataURL=null;smUpscaleURL=null;
-  document.getElementById('sm-upload-zone').style.display='block';
-  document.getElementById('sm-preview-wrap').style.display='none';
-  document.getElementById('sm-results').style.display='none';
+  const uz=document.getElementById('sm-upload-zone');
+  uz.style.display='flex';
+  uz.style.backgroundImage='none';
+  const ut=uz.querySelector('.sm-upload-text');
+  if(ut)ut.style.display='';
+  document.getElementById('sm-compare-wrap').style.display='none';
+  document.getElementById('sm-tiled-wrap').style.display='none';
+  document.getElementById('sm-tab-bar').style.display='none';
   document.getElementById('sm-dl-wrap').style.display='none';
   document.getElementById('sm-detect-badge').style.display='none';
   document.getElementById('sm-status-bar').style.display='none';
   document.getElementById('sm-file-input').value='';
+}
+
+function smSwitchTab(tab){
+  document.getElementById('sm-compare-wrap').style.display=tab==='compare'?'flex':'none';
+  document.getElementById('sm-tiled-wrap').style.display=tab==='tiled'?'flex':'none';
+  document.querySelectorAll('.sm-tab').forEach(b=>{
+    const active=b.dataset.tab===tab;
+    b.style.color=active?'var(--white)':'var(--text3)';
+    b.style.borderBottom=active?'2px solid white':'2px solid transparent';
+  });
+}
+
+// 슬라이더 드래그 (img 기반)
+let smSliderInit=false;
+function smInitSlider(){
+  if(smSliderInit)return;
+  smSliderInit=true;
+  const box=document.getElementById('sm-compare-box');
+  const clip=document.getElementById('sm-result-clip');
+  const line=document.getElementById('sm-slider-line');
+  let dragging=false;
+  const move=(x)=>{
+    const r=box.getBoundingClientRect();
+    const pct=Math.max(0.01,Math.min(0.99,(x-r.left)/r.width));
+    const pctPx=(pct*100).toFixed(1)+'%';
+    clip.style.clipPath='inset(0 '+(100-pct*100).toFixed(1)+'% 0 0)';
+    line.style.left=pctPx;
+  };
+  box.addEventListener('mousedown',(e)=>{dragging=true;move(e.clientX);e.preventDefault();});
+  window.addEventListener('mousemove',(e)=>{if(dragging)move(e.clientX);});
+  window.addEventListener('mouseup',()=>dragging=false);
+  box.addEventListener('touchstart',(e)=>{dragging=true;move(e.touches[0].clientX);},{passive:true});
+  window.addEventListener('touchmove',(e)=>{if(dragging)move(e.touches[0].clientX);},{passive:true});
+  window.addEventListener('touchend',()=>dragging=false);
 }
 
 function smSetStatus(text,show=true){
@@ -1232,34 +1333,26 @@ function smProcess(){
   const btn=document.getElementById('sm-run-btn');
   btn.disabled=true;btn.style.opacity='.35';btn.textContent='처리 중...';
   smResultDataURL=null;smUpscaleURL=null;
-  document.getElementById('sm-results').style.display='none';
   document.getElementById('sm-dl-wrap').style.display='none';
-  document.getElementById('sm-upscale-section').style.display='none';
-  document.getElementById('sm-dl-upscale-btn').style.display='none';
   smSetStatus('패턴 감지 중...');
 
   const img=new Image();
   img.onload=()=>{
-    // 원본 캔버스
-    const oc=document.getElementById('sm-orig-canvas');
-    const sc=Math.min(460/img.width,460/img.height,1);
-    oc.width=Math.floor(img.width*sc);oc.height=Math.floor(img.height*sc);
-    oc.getContext('2d').drawImage(img,0,0,oc.width,oc.height);
-
     setTimeout(()=>{
       const perf=detectPerforated(img);
       const db=document.getElementById('sm-detect-badge');
       const mb=document.getElementById('sm-method-badge');
       db.style.display='flex';mb.style.display='block';
       if(perf.isPerf){
-        document.getElementById('sm-detect-text').textContent=`⚫ 타공 패턴 감지 — 간격 X=${perf.pX.toFixed(1)} Y=${perf.pY.toFixed(1)}px`;
-        mb.textContent='타공 간격 정렬';
-        smSetStatus('타공 패턴 처리 중...');
+        document.getElementById('sm-detect-text').textContent=`⚫ 타공 패턴 — 주기 X=${perf.pX.toFixed(1)} Y=${perf.pY.toFixed(1)}px`;
+        mb.textContent='주기 크롭';
+        smSetStatus('타공 주기 정렬 중...');
         setTimeout(()=>smFinalize(perf.canvas,btn),100);
       }else{
-        document.getElementById('sm-detect-text').textContent='🪵 일반 텍스처 — FFT 가우시안 방식';
-        mb.textContent='FFT 가우시안';
-        smSetStatus('FFT 주파수 변환 중...');
+        const key=document.getElementById('sm-api-key').value.trim();
+        const useAPI=key.startsWith('r8_')&&key.length>10;
+        document.getElementById('sm-detect-text').textContent=useAPI?'🪵 일반 텍스처 — Replicate AI':'🪵 일반 텍스처 — 로컬 처리';
+        mb.textContent=useAPI?'Replicate AI':'로컬';
         setTimeout(()=>smRunFFT(img,btn),30);
       }
     },30);
@@ -1267,56 +1360,123 @@ function smProcess(){
   img.src=smPreviewURL;
 }
 
-function smRunFFT(img,btn){
-  const MAX=256,sc=Math.min(MAX/img.width,MAX/img.height,1);
-  const w=Math.floor(img.width*sc),h=Math.floor(img.height*sc);
-  const tmp=mkCanvas(w,h);tmp.getContext('2d').drawImage(img,0,0,w,h);
-  const pixels=tmp.getContext('2d').getImageData(0,0,w,h).data;
-  smSetStatus(`FFT 처리 중... (${w}×${h}px)`);
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    const rgb=makeSeamlessFFT(pixels,w,h);
+async function smRunFFT(img, btn) {
+  const key = document.getElementById('sm-api-key').value.trim();
+  if (!key.startsWith('r8_') || key.length < 10) {
+    // API 키 없으면 로컬 fallback
+    smSetStatus('심리스 변환 중 (로컬)...');
+    const MAX=1024, sc=Math.min(MAX/img.width, MAX/img.height, 1);
+    const w=Math.floor(img.width*sc), h=Math.floor(img.height*sc);
+    const tmp=mkCanvas(w,h); tmp.getContext('2d').drawImage(img,0,0,w,h);
+    const pixels=tmp.getContext('2d').getImageData(0,0,w,h).data;
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      const rgba=makeSeamlessFFT(pixels,w,h);
+      const out=mkCanvas(w,h),octx=out.getContext('2d'),od=octx.createImageData(w,h);
+      od.data.set(rgba); octx.putImageData(od,0,0);
+      smFinalize(out,btn);
+    }));
+    return;
+  }
+
+  // Replicate seamless-texture API 사용
+  smSetStatus('Replicate AI 심리스 변환 중...');
+  try {
+    // 이미지를 base64로 변환
+    const MAX=1024, sc=Math.min(MAX/img.width, MAX/img.height, 1);
+    const w=Math.floor(img.width*sc), h=Math.floor(img.height*sc);
+    const tmp=mkCanvas(w,h); tmp.getContext('2d').drawImage(img,0,0,w,h);
+    const dataURL=tmp.toDataURL('image/png');
+
+    const cr = await fetch('https://api.replicate.com/v1/models/replicate/seamless-texture/predictions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json', 'Prefer': 'wait' },
+      body: JSON.stringify({ input: { image: dataURL } })
+    });
+
+    if (!cr.ok) {
+      const err = await cr.text();
+      throw new Error(`API ${cr.status}: ${err}`);
+    }
+
+    const pred = await cr.json();
+
+    // 결과 처리
+    if (pred.status === 'succeeded' && pred.output) {
+      const outputUrl = Array.isArray(pred.output) ? pred.output[0] : pred.output;
+      const resultImg = new Image();
+      resultImg.crossOrigin = 'anonymous';
+      resultImg.onload = () => {
+        const out = mkCanvas(resultImg.width, resultImg.height);
+        out.getContext('2d').drawImage(resultImg, 0, 0);
+        smFinalize(out, btn);
+      };
+      resultImg.onerror = () => { throw new Error('결과 이미지 로드 실패'); };
+      resultImg.src = outputUrl;
+      return;
+    }
+
+    // polling 필요한 경우
+    let predId = pred.id;
+    for (let i = 0; i < 60; i++) {
+      await new Promise(r => setTimeout(r, 2000));
+      smSetStatus(`AI 처리 중... (${i*2}s)`);
+      const pr = await fetch(`https://api.replicate.com/v1/predictions/${predId}`, {
+        headers: { 'Authorization': `Bearer ${key}` }
+      });
+      const pd = await pr.json();
+      if (pd.status === 'succeeded') {
+        const outputUrl = Array.isArray(pd.output) ? pd.output[0] : pd.output;
+        const resultImg = new Image();
+        resultImg.crossOrigin = 'anonymous';
+        resultImg.onload = () => {
+          const out = mkCanvas(resultImg.width, resultImg.height);
+          out.getContext('2d').drawImage(resultImg, 0, 0);
+          smFinalize(out, btn);
+        };
+        resultImg.src = outputUrl;
+        return;
+      }
+      if (pd.status === 'failed') throw new Error(pd.error || 'API 실패');
+    }
+    throw new Error('타임아웃');
+  } catch (e) {
+    smSetStatus(`오류: ${e.message} — 로컬 처리로 전환`);
+    // fallback to local
+    const MAX=1024, sc=Math.min(MAX/img.width, MAX/img.height, 1);
+    const w=Math.floor(img.width*sc), h=Math.floor(img.height*sc);
+    const tmp=mkCanvas(w,h); tmp.getContext('2d').drawImage(img,0,0,w,h);
+    const pixels=tmp.getContext('2d').getImageData(0,0,w,h).data;
+    const rgba=makeSeamlessFFT(pixels,w,h);
     const out=mkCanvas(w,h),octx=out.getContext('2d'),od=octx.createImageData(w,h);
-    for(let i=0;i<w*h;i++){od.data[i*4]=Math.max(0,Math.min(255,Math.round(rgb[i*3])));od.data[i*4+1]=Math.max(0,Math.min(255,Math.round(rgb[i*3+1])));od.data[i*4+2]=Math.max(0,Math.min(255,Math.round(rgb[i*3+2])));od.data[i*4+3]=255;}
-    octx.putImageData(od,0,0);
+    od.data.set(rgba); octx.putImageData(od,0,0);
     smFinalize(out,btn);
-  }));
+  }
 }
 
 function smFinalize(canvas,btn){
   smSetStatus('완료!',false);
-  const rc=document.getElementById('sm-result-canvas');
-  rc.width=canvas.width;rc.height=canvas.height;rc.getContext('2d').drawImage(canvas,0,0);
+  smResultDataURL=canvas.toDataURL('image/png');
+  // 원본 img
+  document.getElementById('sm-orig-img').src=smPreviewURL;
+  // 심리스 img
+  document.getElementById('sm-result-img').src=smResultDataURL;
+  // 타일링 canvas
   const tc=document.getElementById('sm-tiled-canvas');
   tc.width=canvas.width*4;tc.height=canvas.height*4;
   const tCtx=tc.getContext('2d');
   for(let x=0;x<4;x++)for(let y=0;y<4;y++)tCtx.drawImage(canvas,x*canvas.width,y*canvas.height);
-  smResultDataURL=canvas.toDataURL('image/png');
-  document.getElementById('sm-results').style.display='flex';
+  // 슬라이더 초기화
+  document.getElementById('sm-result-clip').style.clipPath='inset(0 50% 0 0)';
+  document.getElementById('sm-slider-line').style.left='50%';
+  smInitSlider();
+  // 탭 표시
+  document.getElementById('sm-upload-zone').style.display='none';
+  document.getElementById('sm-tab-bar').style.display='flex';
   document.getElementById('sm-dl-wrap').style.display='grid';
+  smSwitchTab('compare');
   btn.disabled=false;btn.style.opacity='1';btn.textContent='SEAMLESS 변환';
-
-  const key=document.getElementById('sm-api-key').value.trim();
-  if(key.startsWith('r8_')&&key.length>10)setTimeout(()=>smRunUpscale(smResultDataURL,key),400);
 }
 
-async function smRunUpscale(dataURL,key){
-  smSetStatus('Real-ESRGAN 4× 업스케일 중...',true);
-  try{
-    const cr=await fetch('/api/upscale',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({image:dataURL,apiKey:key})
-    });
-    if(!cr.ok)throw new Error(`API ${cr.status}`);
-    const result=await cr.json();
-    if(result.error)throw new Error(result.error);
-    smUpscaleURL=result.url;
-    document.getElementById('sm-upscale-img').src=result.url;
-    document.getElementById('sm-upscale-section').style.display='block';
-    document.getElementById('sm-dl-upscale-btn').style.display='flex';
-    smSetStatus('업스케일 완료!',false);
-  }catch(e){smSetStatus('업스케일 오류: '+e.message,true);}
-}
 
 function smDownloadSeamless(){
   if(!smResultDataURL)return;
