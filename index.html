@@ -1718,15 +1718,12 @@ async function txGenerateAI(cropDataURL, apiKey, btn) {
 
     const FIXED_PROMPT = "A flat seamless tileable 2D albedo texture map of this exact material, photorealistic, no background, no shadows, no perspective, square format, architectural CG texture";
 
-    // Replicate nano-banana (Gemini 2.5 기반 이미지 생성)
-    const startResp = await fetch('https://api.replicate.com/v1/models/google/nano-banana/predictions', {
+    // Vercel 프록시 경유 (CORS 우회)
+    const proxyResp = await fetch('/api/texture', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + apiKey,
-        'Prefer': 'wait=55'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        apiKey,
         input: {
           prompt: FIXED_PROMPT,
           image: 'data:image/png;base64,' + base64,
@@ -1735,28 +1732,10 @@ async function txGenerateAI(cropDataURL, apiKey, btn) {
       })
     });
 
-    const pred = await startResp.json();
+    const pred = await proxyResp.json();
     if (pred.error) throw new Error(pred.error);
-
-    let outputUrl = pred.output;
-    // polling이 필요한 경우
-    if (!outputUrl && pred.urls?.get) {
-      let status = pred.status;
-      let pollData = pred;
-      while (status !== 'succeeded' && status !== 'failed') {
-        await new Promise(r => setTimeout(r, 1500));
-        const pollResp = await fetch(pred.urls.get, {
-          headers: { 'Authorization': 'Bearer ' + apiKey }
-        });
-        pollData = await pollResp.json();
-        status = pollData.status;
-      }
-      if (status === 'failed') throw new Error('생성 실패: ' + pollData.error);
-      outputUrl = pollData.output;
-    }
-
-    if (!outputUrl) throw new Error('결과 없음');
-    const imageUrl = Array.isArray(outputUrl) ? outputUrl[0] : outputUrl;
+    if (!pred.output) throw new Error('결과 없음');
+    const imageUrl = Array.isArray(pred.output) ? pred.output[0] : pred.output;
 
     const aiImg = new Image();
     aiImg.crossOrigin = 'anonymous';
