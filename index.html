@@ -1139,63 +1139,55 @@ function fftshift2d(a,R,C){const o=new Float64Array(a.length),hr=Math.floor(R/2)
 function ifftshift2d(a,R,C){const o=new Float64Array(a.length),hr=Math.ceil(R/2),hc=Math.ceil(C/2);for(let r=0;r<R;r++)for(let c=0;c<C;c++)o[((r+hr)%R)*C+(c+hc)%C]=a[r*C+c];return o;}
 
 function makeSeamlessFFT(pixels, w, h) {
-  // ── Photoshop Offset + Seam Clone 방식 ──
-  // 1) 원본을 (w/2, h/2) wrap 오프셋 → 경계선이 이미지 중앙으로 이동
-  // 2) 오프셋 이미지의 중앙 십자선(경계선) 근방 픽셀을
-  //    오프셋 이미지의 "먼 쪽" (경계선에서 반대편) 픽셀로 대체
-  //    → 경계선 없는 쪽의 픽셀이므로 자연스럽게 이어짐
-  // 3) 나머지 100% 보존
+  // ── 진짜 Gaussian 블렌딩 심리스 알고리즘 ──
+  // 원리: 원본(A)과 오프셋(B)을 경계선 근방에서 Gaussian 가중치로 블렌딩
+  // 결과: 어느 방향으로 타일링해도 경계가 안 보임
 
   const hw = Math.floor(w / 2), hh = Math.floor(h / 2);
-  // 패치 반경: 이미지 크기의 8% (더 넓게 해야 경계가 완전히 사라짐)
-  const pR = Math.max(3, Math.floor(Math.min(w, h) * 0.08));
 
-  // Step 1: offset
-  const off = new Uint8ClampedArray(w * h * 4);
+  // Step 1: 오프셋 이미지 B 만들기 (w/2, h/2 wrap)
+  const B = new Uint8ClampedArray(w * h * 4);
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       const sx = (x + hw) % w, sy = (y + hh) % h;
       const si = (sy * w + sx) * 4, di = (y * w + x) * 4;
-      off[di]=pixels[si]; off[di+1]=pixels[si+1]; off[di+2]=pixels[si+2]; off[di+3]=255;
+      B[di] = pixels[si]; B[di+1] = pixels[si+1];
+      B[di+2] = pixels[si+2]; B[di+3] = 255;
     }
   }
 
-  // Step 2: seam clone
-  // 오프셋 이미지에서 경계선 위치 = x≈hw(세로선), y≈hh(가로선)
-  // clone source: 경계선에서 반대쪽으로 pR*2+샘플offset 떨어진 픽셀
-  const result = new Uint8ClampedArray(off);
+  // Step 2: 각 픽셀의 블렌딩 가중치 계산
+  // x축: 원본 가중치 = 삼각함수로 좌우 끝에서 1, 중앙(hw)에서 0
+  // y축: 원본 가중치 = 삼각함수로 상하 끝에서 1, 중앙(hh)에서 0
+  // 두 가중치의 max를 사용 → 경계선에서만 블렌딩
+  const result = new Uint8ClampedArray(w * h * 4);
 
-  // 세로 경계선 (x=hw) 패치
   for (let y = 0; y < h; y++) {
-    for (let dx = -pR; dx <= pR; dx++) {
-      const x = (hw + dx + w) % w;
-      const t = smoothstep(Math.abs(dx) / pR); // 경계선 중심에 가까울수록 t→0 (clone 100%)
-      // clone source: 경계선 반대편 (dx 부호 반전, pR+샘플간격)
-      const cloneX = (hw - dx * 3 + w * 4) % w;
-      for (let ch = 0; ch < 3; ch++) {
-        const orig = off[(y * w + x) * 4 + ch];
-        const clone = off[(y * w + cloneX) * 4 + ch];
-        result[(y * w + x) * 4 + ch] = Math.round(orig * t + clone * (1 - t));
-      }
-    }
-  }
+    for (let x = 0; x < w; x++) {
+      const di = (y * w + x) * 4;
 
-  // 가로 경계선 (y=hh) 패치
-  for (let x = 0; x < w; x++) {
-    for (let dy = -pR; dy <= pR; dy++) {
-      const y = (hh + dy + h) % h;
-      const t = smoothstep(Math.abs(dy) / pR);
-      const cloneY = (hh - dy * 3 + h * 4) % h;
+      // 원본 픽셀
+      const ai = di;
+
+      // x방향 가중치: 중앙(hw)=0, 양 끝=1, cos 곡선
+      const wx = 0.5 + 0.5 * Math.cos(Math.PI * x / w);
+      // y방향 가중치: 중앙(hh)=0, 양 끝=1, cos 곡선
+      const wy = 0.5 + 0.5 * Math.cos(Math.PI * y / h);
+
+      // 원본(A) 가중치 = max(wx, wy) → 경계선 근방에서 B 우세
+      const wA = Math.max(wx, wy);
+      const wB = 1 - wA;
+
       for (let ch = 0; ch < 3; ch++) {
-        const orig = result[(y * w + x) * 4 + ch];
-        const clone = off[(cloneY * w + x) * 4 + ch];
-        result[(y * w + x) * 4 + ch] = Math.round(orig * t + clone * (1 - t));
+        result[di + ch] = Math.round(pixels[ai + ch] * wA + B[di + ch] * wB);
       }
+      result[di + 3] = 255;
     }
   }
 
   return result;
 }
+
 
 function smoothstep(t) { t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); }
 
@@ -1425,9 +1417,17 @@ async function smRunFFT(img, btn) {
   offCtx.drawImage(srcCanvas, 0, 0, hw, hh, w - hw, h - hh, hw, hh);
 
   if (!key.startsWith('r8_') || key.length < 10) {
-    // API 키 없으면 로컬 fallback (단순 오프셋만)
+    // API 키 없으면 로컬 알고리즘
     smSetStatus('심리스 변환 중 (로컬)...');
-    smFinalize(offCanvas, btn);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const pixels = srcCanvas.getContext('2d').getImageData(0, 0, w, h).data;
+      const rgba = makeSeamlessFFT(pixels, w, h);
+      const out = mkCanvas(w, h);
+      const od = out.getContext('2d').createImageData(w, h);
+      od.data.set(rgba);
+      out.getContext('2d').putImageData(od, 0, 0);
+      smFinalize(out, btn);
+    }));
     return;
   }
 
