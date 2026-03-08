@@ -1371,10 +1371,11 @@ function smFinalize(canvas, btn) {
   // 결과 저장
   smResultDataURL = canvas.toDataURL('image/png');
 
-  // before/after 슬라이더 이미지
-  const origImg = document.getElementById('sm-orig-img');
-  const resultImg2 = document.getElementById('sm-result-img');
-  resultImg2.src = smResultDataURL;
+  // before 이미지 = 원본 canvas
+  const origCanvas = document.getElementById('sm-orig-canvas');
+  document.getElementById('sm-orig-img').src = origCanvas.toDataURL('image/png');
+  // after 이미지 = 결과
+  document.getElementById('sm-result-img').src = smResultDataURL;
 
   // 타일 캔버스
   const tileCanvas = document.getElementById('sm-tiled-canvas');
@@ -1389,11 +1390,19 @@ function smFinalize(canvas, btn) {
 
   // UI 업데이트
   smSetStatus('변환 완료!', false);
-  if (btn) { btn.textContent = 'SEAMLESS 변환'; btn.disabled = false; }
+  if (btn) { btn.textContent = 'SEAMLESS 변환'; btn.disabled = false; btn.style.opacity = '1'; }
   document.getElementById('sm-tab-bar').style.display = 'flex';
   document.getElementById('sm-dl-wrap').style.display = 'grid';
   smSwitchTab('compare');
   smInitSlider();
+}
+
+function smDownloadSeamless() {
+  if (!smResultDataURL) return;
+  const a = document.createElement('a');
+  a.href = smResultDataURL;
+  a.download = 'seamless_texture.png';
+  a.click();
 }
 
 async function smRunFFT(img, btn) {
