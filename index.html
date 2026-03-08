@@ -1124,11 +1124,7 @@ body {
         <span id="tx-status-text">처리 중...</span>
       </div>
 
-      <!-- 실행 버튼 -->
-      <button id="tx-run-btn" onclick="txProcess()"
-        style="height:50px;border-radius:12px;background:var(--white);color:var(--bg);border:none;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:.04em;transition:opacity .15s;margin-top:4px">
-        EXTRACT
-      </button>
+      <button id="tx-run-btn" style="display:none"></button>
 
       <!-- 다운로드/리셋 -->
       <div id="tx-dl-wrap" style="display:none;flex-direction:column;gap:8px">
@@ -1182,7 +1178,7 @@ body {
             <div id="tx-crop-box" style="display:none;position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,.5);pointer-events:none"></div>
           </div>
           <div id="tx-crop-confirm" style="display:none;padding:0 16px 14px;flex-shrink:0">
-            <button onclick="txConfirmCrop()"
+            <button onclick="txConfirmAndProcess()"
               style="height:38px;width:100%;border-radius:10px;background:var(--white);color:var(--bg);border:none;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer">
               이 영역으로 추출 →
             </button>
@@ -1656,11 +1652,16 @@ function txConfirmCrop() {
   tmp.getContext('2d').drawImage(canvas._img, rx, ry, rw, rh, 0, 0, tmp.width, tmp.height);
   const cropDataURL = tmp.toDataURL('image/png');
 
-  // 크롭 wrap 유지 (원본 이미지 사라지지 않음), 크롭박스만 숨김
   document.getElementById('tx-crop-confirm').style.display = 'none';
-  document.getElementById('tx-crop-guide').textContent = '✓ 영역 선택 완료 — EXTRACT 버튼을 누르세요';
-
   document.getElementById('tx-run-btn').dataset.cropUrl = cropDataURL;
+  return cropDataURL;
+}
+
+function txConfirmAndProcess() {
+  const cropDataURL = txConfirmCrop();
+  if (!cropDataURL) return;
+  document.getElementById('tx-crop-guide').textContent = '✓ 추출 중...';
+  txProcess();
 }
 
 function txProcess() {
@@ -1716,7 +1717,7 @@ async function txGenerateAI(cropDataURL, apiKey, btn) {
     // base64 추출
     const base64 = cropDataURL.split(',')[1];
 
-    const FIXED_PROMPT = "Create a perfectly seamless tileable texture map based on the exact material shown in this image. Match the color, pattern, grain, and surface detail precisely. Output must be flat 2D with no shadows, no perspective distortion, no lighting, square format, photorealistic albedo map ready for 3D rendering.";
+    const FIXED_PROMPT = "Transform this image into a flat top-down orthographic texture map. Remove all perspective, foreshortening, and angle distortion. The output must look like the surface was photographed perfectly from directly above (bird's eye view, 90 degrees). Preserve the exact material color, pattern, grain and detail. No shadows, no lighting gradients, seamless tileable, square format, 2D albedo texture map for 3D rendering.";
 
     // Vercel 프록시 경유 (CORS 우회)
     const proxyResp = await fetch('/api/texture', {
