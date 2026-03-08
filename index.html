@@ -1362,47 +1362,59 @@ function smProcess(){
 
 async function smRunFFT(img, btn) {
   const key = document.getElementById('sm-api-key').value.trim();
+
+  // 1. 오프셋 이동 (w/2, h/2) — 경계선을 중앙으로
+  const MAX = 1024, sc = Math.min(MAX / img.width, MAX / img.height, 1);
+  const w = Math.floor(img.width * sc), h = Math.floor(img.height * sc);
+  const hw = Math.floor(w / 2), hh = Math.floor(h / 2);
+
+  const srcCanvas = mkCanvas(w, h);
+  srcCanvas.getContext('2d').drawImage(img, 0, 0, w, h);
+
+  const offCanvas = mkCanvas(w, h);
+  const offCtx = offCanvas.getContext('2d');
+  // 4-quadrant wrap
+  offCtx.drawImage(srcCanvas, hw, hh, w - hw, h - hh, 0, 0, w - hw, h - hh);
+  offCtx.drawImage(srcCanvas, 0, hh, hw, h - hh, w - hw, 0, hw, h - hh);
+  offCtx.drawImage(srcCanvas, hw, 0, w - hw, hh, 0, h - hh, w - hw, hh);
+  offCtx.drawImage(srcCanvas, 0, 0, hw, hh, w - hw, h - hh, hw, hh);
+
   if (!key.startsWith('r8_') || key.length < 10) {
-    // API 키 없으면 로컬 fallback
+    // API 키 없으면 로컬 fallback (단순 오프셋만)
     smSetStatus('심리스 변환 중 (로컬)...');
-    const MAX=1024, sc=Math.min(MAX/img.width, MAX/img.height, 1);
-    const w=Math.floor(img.width*sc), h=Math.floor(img.height*sc);
-    const tmp=mkCanvas(w,h); tmp.getContext('2d').drawImage(img,0,0,w,h);
-    const pixels=tmp.getContext('2d').getImageData(0,0,w,h).data;
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      const rgba=makeSeamlessFFT(pixels,w,h);
-      const out=mkCanvas(w,h),octx=out.getContext('2d'),od=octx.createImageData(w,h);
-      od.data.set(rgba); octx.putImageData(od,0,0);
-      smFinalize(out,btn);
-    }));
+    smFinalize(offCanvas, btn);
     return;
   }
 
-  // Replicate seamless-texture API 사용
-  smSetStatus('Replicate AI 심리스 변환 중...');
-  try {
-    // 이미지를 base64로 변환
-    const MAX=1024, sc=Math.min(MAX/img.width, MAX/img.height, 1);
-    const w=Math.floor(img.width*sc), h=Math.floor(img.height*sc);
-    const tmp=mkCanvas(w,h); tmp.getContext('2d').drawImage(img,0,0,w,h);
-    const dataURL=tmp.toDataURL('image/png');
+  // 2. 마스크 생성 — 중앙 십자선만 흰색 (경계선 영역)
+  const patchW = Math.max(6, Math.floor(Math.min(w, h) * 0.06));
+  const maskCanvas = mkCanvas(w, h);
+  const mctx = maskCanvas.getContext('2d');
+  mctx.fillStyle = 'black';
+  mctx.fillRect(0, 0, w, h);
+  mctx.fillStyle = 'white';
+  // 가로 경계선
+  mctx.fillRect(0, hh - patchW, w, patchW * 2);
+  // 세로 경계선
+  mctx.fillRect(hw - patchW, 0, patchW * 2, h);
 
-    // Vercel 서버리스 프록시 경유 (CORS 우회)
+  const imageDataURL = offCanvas.toDataURL('image/png');
+  const maskDataURL = maskCanvas.toDataURL('image/png');
+
+  smSetStatus('Flux Fill AI 심리스 변환 중...');
+
+  try {
     const cr = await fetch('/api/seamless', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: dataURL, apiKey: key })
+      body: JSON.stringify({ image: imageDataURL, mask: maskDataURL, apiKey: key })
     });
 
-    if (!cr.ok) {
-      const err = await cr.text();
-      throw new Error(`API ${cr.status}: ${err}`);
-    }
-
+    if (!cr.ok) throw new Error(`API ${cr.status}: ${await cr.text()}`);
     const result = await cr.json();
     if (!result.url) throw new Error(result.error || '결과 없음');
 
-    smSetStatus('AI 처리 완료, 이미지 로드 중...');
+    smSetStatus('완료! 이미지 로드 중...');
     const resultImg = new Image();
     resultImg.crossOrigin = 'anonymous';
     resultImg.onload = () => {
@@ -1410,51 +1422,15 @@ async function smRunFFT(img, btn) {
       out.getContext('2d').drawImage(resultImg, 0, 0);
       smFinalize(out, btn);
     };
-    resultImg.onerror = () => { throw new Error('결과 이미지 로드 실패'); };
+    resultImg.onerror = () => {
+      smSetStatus('이미지 로드 실패, 로컬 결과 사용');
+      smFinalize(offCanvas, btn);
+    };
     resultImg.src = result.url;
-    return;
   } catch (e) {
-    smSetStatus(`오류: ${e.message} — 로컬 처리로 전환`);
-    // fallback to local
-    const MAX=1024, sc=Math.min(MAX/img.width, MAX/img.height, 1);
-    const w=Math.floor(img.width*sc), h=Math.floor(img.height*sc);
-    const tmp=mkCanvas(w,h); tmp.getContext('2d').drawImage(img,0,0,w,h);
-    const pixels=tmp.getContext('2d').getImageData(0,0,w,h).data;
-    const rgba=makeSeamlessFFT(pixels,w,h);
-    const out=mkCanvas(w,h),octx=out.getContext('2d'),od=octx.createImageData(w,h);
-    od.data.set(rgba); octx.putImageData(od,0,0);
-    smFinalize(out,btn);
+    smSetStatus(`오류: ${e.message} — 로컬 결과 사용`);
+    smFinalize(offCanvas, btn);
   }
-}
-
-function smFinalize(canvas,btn){
-  smSetStatus('완료!',false);
-  smResultDataURL=canvas.toDataURL('image/png');
-  // 원본 img
-  document.getElementById('sm-orig-img').src=smPreviewURL;
-  // 심리스 img
-  document.getElementById('sm-result-img').src=smResultDataURL;
-  // 타일링 canvas
-  const tc=document.getElementById('sm-tiled-canvas');
-  tc.width=canvas.width*4;tc.height=canvas.height*4;
-  const tCtx=tc.getContext('2d');
-  for(let x=0;x<4;x++)for(let y=0;y<4;y++)tCtx.drawImage(canvas,x*canvas.width,y*canvas.height);
-  // 슬라이더 초기화
-  document.getElementById('sm-result-clip').style.clipPath='inset(0 50% 0 0)';
-  document.getElementById('sm-slider-line').style.left='50%';
-  smInitSlider();
-  // 탭 표시
-  document.getElementById('sm-upload-zone').style.display='none';
-  document.getElementById('sm-tab-bar').style.display='flex';
-  document.getElementById('sm-dl-wrap').style.display='grid';
-  smSwitchTab('compare');
-  btn.disabled=false;btn.style.opacity='1';btn.textContent='SEAMLESS 변환';
-}
-
-
-function smDownloadSeamless(){
-  if(!smResultDataURL)return;
-  const a=document.createElement('a');a.href=smResultDataURL;a.download='skiph_seamless_'+Date.now()+'.png';a.click();
 }
 
 async function smDownloadUpscale(){
