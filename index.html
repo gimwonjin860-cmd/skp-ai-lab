@@ -1387,10 +1387,11 @@ async function smRunFFT(img, btn) {
     const tmp=mkCanvas(w,h); tmp.getContext('2d').drawImage(img,0,0,w,h);
     const dataURL=tmp.toDataURL('image/png');
 
-    const cr = await fetch('https://api.replicate.com/v1/models/replicate/seamless-texture/predictions', {
+    // Vercel 서버리스 프록시 경유 (CORS 우회)
+    const cr = await fetch('/api/seamless', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json', 'Prefer': 'wait' },
-      body: JSON.stringify({ input: { image: dataURL } })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: dataURL, apiKey: key })
     });
 
     if (!cr.ok) {
@@ -1398,47 +1399,20 @@ async function smRunFFT(img, btn) {
       throw new Error(`API ${cr.status}: ${err}`);
     }
 
-    const pred = await cr.json();
+    const result = await cr.json();
+    if (!result.url) throw new Error(result.error || '결과 없음');
 
-    // 결과 처리
-    if (pred.status === 'succeeded' && pred.output) {
-      const outputUrl = Array.isArray(pred.output) ? pred.output[0] : pred.output;
-      const resultImg = new Image();
-      resultImg.crossOrigin = 'anonymous';
-      resultImg.onload = () => {
-        const out = mkCanvas(resultImg.width, resultImg.height);
-        out.getContext('2d').drawImage(resultImg, 0, 0);
-        smFinalize(out, btn);
-      };
-      resultImg.onerror = () => { throw new Error('결과 이미지 로드 실패'); };
-      resultImg.src = outputUrl;
-      return;
-    }
-
-    // polling 필요한 경우
-    let predId = pred.id;
-    for (let i = 0; i < 60; i++) {
-      await new Promise(r => setTimeout(r, 2000));
-      smSetStatus(`AI 처리 중... (${i*2}s)`);
-      const pr = await fetch(`https://api.replicate.com/v1/predictions/${predId}`, {
-        headers: { 'Authorization': `Bearer ${key}` }
-      });
-      const pd = await pr.json();
-      if (pd.status === 'succeeded') {
-        const outputUrl = Array.isArray(pd.output) ? pd.output[0] : pd.output;
-        const resultImg = new Image();
-        resultImg.crossOrigin = 'anonymous';
-        resultImg.onload = () => {
-          const out = mkCanvas(resultImg.width, resultImg.height);
-          out.getContext('2d').drawImage(resultImg, 0, 0);
-          smFinalize(out, btn);
-        };
-        resultImg.src = outputUrl;
-        return;
-      }
-      if (pd.status === 'failed') throw new Error(pd.error || 'API 실패');
-    }
-    throw new Error('타임아웃');
+    smSetStatus('AI 처리 완료, 이미지 로드 중...');
+    const resultImg = new Image();
+    resultImg.crossOrigin = 'anonymous';
+    resultImg.onload = () => {
+      const out = mkCanvas(resultImg.width, resultImg.height);
+      out.getContext('2d').drawImage(resultImg, 0, 0);
+      smFinalize(out, btn);
+    };
+    resultImg.onerror = () => { throw new Error('결과 이미지 로드 실패'); };
+    resultImg.src = result.url;
+    return;
   } catch (e) {
     smSetStatus(`오류: ${e.message} — 로컬 처리로 전환`);
     // fallback to local
