@@ -1,4 +1,4 @@
-export const maxDuration = 60; // Vercel Pro 최대 60초
+export const maxDuration = 60;
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -11,7 +11,6 @@ export default async function handler(req, res) {
   if (!image || !apiKey) return res.status(400).json({ error: 'image, apiKey 필요' });
 
   try {
-    // Prefer: wait=55 → Replicate이 55초 내로 완료되면 바로 응답
     const cr = await fetch('https://api.replicate.com/v1/models/black-forest-labs/flux-fill-pro/predictions', {
       method: 'POST',
       headers: {
@@ -31,37 +30,41 @@ export default async function handler(req, res) {
       })
     });
 
-    if (!cr.ok) {
-      const errText = await cr.text();
-      return res.status(cr.status).json({ error: errText });
-    }
+    if (!cr.ok) return res.status(cr.status).json({ error: await cr.text() });
 
     const pred = await cr.json();
+    let outputUrl = null;
 
     if (pred.status === 'succeeded' && pred.output) {
-      const url = Array.isArray(pred.output) ? pred.output[0] : pred.output;
-      return res.status(200).json({ url });
-    }
-
-    if (pred.status === 'failed') {
+      outputUrl = Array.isArray(pred.output) ? pred.output[0] : pred.output;
+    } else if (pred.status === 'failed') {
       return res.status(500).json({ error: pred.error || 'failed' });
-    }
-
-    // 아직 processing 중이면 짧게 폴링 (최대 30초 추가)
-    for (let i = 0; i < 15; i++) {
-      await new Promise(r => setTimeout(r, 2000));
-      const pr = await fetch(`https://api.replicate.com/v1/predictions/${pred.id}`, {
-        headers: { 'Authorization': `Bearer ${apiKey}` }
-      });
-      const pd = await pr.json();
-      if (pd.status === 'succeeded') {
-        const url = Array.isArray(pd.output) ? pd.output[0] : pd.output;
-        return res.status(200).json({ url });
+    } else {
+      // 폴링
+      for (let i = 0; i < 15; i++) {
+        await new Promise(r => setTimeout(r, 2000));
+        const pr = await fetch(`https://api.replicate.com/v1/predictions/${pred.id}`, {
+          headers: { 'Authorization': `Bearer ${apiKey}` }
+        });
+        const pd = await pr.json();
+        if (pd.status === 'succeeded') {
+          outputUrl = Array.isArray(pd.output) ? pd.output[0] : pd.output;
+          break;
+        }
+        if (pd.status === 'failed') return res.status(500).json({ error: pd.error || 'failed' });
       }
-      if (pd.status === 'failed') return res.status(500).json({ error: pd.error || 'failed' });
     }
 
-    return res.status(504).json({ error: '타임아웃' });
+    if (!outputUrl) return res.status(504).json({ error: '타임아웃' });
+
+    // 이미지를 서버에서 base64로 변환 후 전달 (브라우저 CORS 우회)
+    const imgRes = await fetch(outputUrl);
+    const buf = await imgRes.arrayBuffer();
+    const base64 = Buffer.from(buf).toString('base64');
+    const dataURL = `data:image/png;base64,${base64}`;
+
+    return res.status(200).json({ dataURL });
+
   } catch (e) {
     return res.status(500).json({ error: String(e) });
   }

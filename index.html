@@ -1412,11 +1412,10 @@ async function smRunFFT(img, btn) {
 
     if (!cr.ok) throw new Error(`API ${cr.status}: ${await cr.text()}`);
     const result = await cr.json();
-    if (!result.url) throw new Error(result.error || '결과 없음');
+    if (!result.dataURL) throw new Error(result.error || '결과 없음');
 
     smSetStatus('완료! 이미지 로드 중...');
     const resultImg = new Image();
-    resultImg.crossOrigin = 'anonymous';
     resultImg.onload = () => {
       const out = mkCanvas(resultImg.width, resultImg.height);
       out.getContext('2d').drawImage(resultImg, 0, 0);
@@ -1426,7 +1425,7 @@ async function smRunFFT(img, btn) {
       smSetStatus('이미지 로드 실패, 로컬 결과 사용');
       smFinalize(offCanvas, btn);
     };
-    resultImg.src = result.url;
+    resultImg.src = result.dataURL;
   } catch (e) {
     smSetStatus(`오류: ${e.message} — 로컬 결과 사용`);
     smFinalize(offCanvas, btn);
