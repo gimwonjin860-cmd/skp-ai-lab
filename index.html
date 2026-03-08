@@ -1410,22 +1410,24 @@ async function smRunFFT(img, btn) {
       body: JSON.stringify({ image: imageDataURL, mask: maskDataURL, apiKey: key })
     });
 
-    if (!cr.ok) throw new Error(`API ${cr.status}: ${await cr.text()}`);
-    const result = await cr.json();
-    if (!result.dataURL) throw new Error(result.error || '결과 없음');
+    if (!cr.ok) throw new Error(`API ${cr.status}`);
 
+    // 스트리밍 이미지 → blob URL
     smSetStatus('완료! 이미지 로드 중...');
+    const blob = await cr.blob();
+    const blobURL = URL.createObjectURL(blob);
     const resultImg = new Image();
     resultImg.onload = () => {
       const out = mkCanvas(resultImg.width, resultImg.height);
       out.getContext('2d').drawImage(resultImg, 0, 0);
+      URL.revokeObjectURL(blobURL);
       smFinalize(out, btn);
     };
     resultImg.onerror = () => {
       smSetStatus('이미지 로드 실패, 로컬 결과 사용');
       smFinalize(offCanvas, btn);
     };
-    resultImg.src = result.dataURL;
+    resultImg.src = blobURL;
   } catch (e) {
     smSetStatus(`오류: ${e.message} — 로컬 결과 사용`);
     smFinalize(offCanvas, btn);

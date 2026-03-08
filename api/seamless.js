@@ -40,7 +40,6 @@ export default async function handler(req, res) {
     } else if (pred.status === 'failed') {
       return res.status(500).json({ error: pred.error || 'failed' });
     } else {
-      // 폴링
       for (let i = 0; i < 15; i++) {
         await new Promise(r => setTimeout(r, 2000));
         const pr = await fetch(`https://api.replicate.com/v1/predictions/${pred.id}`, {
@@ -57,13 +56,14 @@ export default async function handler(req, res) {
 
     if (!outputUrl) return res.status(504).json({ error: '타임아웃' });
 
-    // 이미지를 서버에서 base64로 변환 후 전달 (브라우저 CORS 우회)
+    // 이미지를 스트리밍으로 프록시 (base64 변환 X → 용량 문제 없음)
     const imgRes = await fetch(outputUrl);
-    const buf = await imgRes.arrayBuffer();
-    const base64 = Buffer.from(buf).toString('base64');
-    const dataURL = `data:image/png;base64,${base64}`;
-
-    return res.status(200).json({ dataURL });
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'no-store');
+    imgRes.body.pipeTo(new WritableStream({
+      write(chunk) { res.write(chunk); },
+      close() { res.end(); }
+    }));
 
   } catch (e) {
     return res.status(500).json({ error: String(e) });
