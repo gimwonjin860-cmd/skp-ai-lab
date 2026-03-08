@@ -2173,7 +2173,7 @@ async function upProcess() {
     const creativity = parseFloat(document.getElementById('up-creativity').value);
     const resemblance = parseFloat(document.getElementById('up-resemblance').value);
 
-    const resp = await fetch('/api/upscale', {
+    const resp = await fetch('/api/upscaler', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
